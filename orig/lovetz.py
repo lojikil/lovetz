@@ -74,6 +74,18 @@ class CORSPlugin(LovetzPlugin):
             print "Header report for {0}".format(url)
 
 
+class LovetzCookie(object):
+    """ Simple HTTP Cookie parser.
+
+    """
+    __slots__ = ['httponly', 'secure', 'comment', 'path', 'name',
+                 'value', 'expires', 'other']
+
+    def __init__(self, name, value, httponly=False, secure=False,
+                 comment=None, path=None, expires=None):
+        pass
+
+
 class CookiePlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
