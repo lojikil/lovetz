@@ -10,9 +10,9 @@ else:
 
 
 target = ""
-domre = re.compile('HOST')
+domre = re.compile('')
 secre = re.compile('[Ss][Ee][Cc][Uu][Rr][Ee];?')
-htore = re.compile('[Hh][Tt]{2}[Pp]-[Oo][Nn][Ll][Yy];?')
+htore = re.compile('[Hh][Tt]{2}[Pp][Oo][Nn][Ll][Yy];?')
 
 class HeaderDict(object):
 
