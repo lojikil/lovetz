@@ -3,47 +3,47 @@ from xml.etree.ElementTree import parse
 import re
 import argparse
 
-os.chdir(r'CHANGE TO PATH')
-files = os.listdir('.')
+#os.chdir(r'CHANGE TO PATH')
+#files = os.listdir('.')
 target = ""
 domre = re.compile('HOST')
-tree = parse('CHANGE TO FILE.xml')
+#tree = parse('CHANGE TO FILE.xml')
 
 
 class HeaderDict(object):
 
-	def __init__(self, allow_multiple=False):
-		self._storage = {}
-		self.allow_multiple = allow_multiple
+    def __init__(self, allow_multiple=False):
+        self._storage = {}
+        self.allow_multiple = allow_multiple
 
-	def __getitem__(self, name):
-		name = name.lower()
-		return self._storage.get(name)
+    def __getitem__(self, name):
+        name = name.lower()
+        return self._storage.get(name)
 
-	def __setitem__(self, name, value):
-		name = name.lower()
-		if self.allow_multiple and name in self._storage:
-			tmp = self._storage.get(name)
-			if isinstance(tmp, list):
-				self._storage[name].append(value)
-			else:
-				self._storage[name] = [tmp, value]
-		else:
-			self._storage[name] = value
-		return None
+    def __setitem__(self, name, value):
+        name = name.lower()
+        if self.allow_multiple and name in self._storage:
+            tmp = self._storage.get(name)
+            if isinstance(tmp, list):
+                self._storage[name].append(value)
+            else:
+                self._storage[name] = [tmp, value]
+        else:
+            self._storage[name] = value
+        return None
 
-	def __contains__(self, key):
-		key = key.lower()
-		return key in self._storage
+    def __contains__(self, key):
+        key = key.lower()
+        return key in self._storage
 
-	def get(self, key, value=None):
-		key = key.lower()
-		if key in self._storage:
-			return self._storage[key]
-		return value
+    def get(self, key, value=None):
+        key = key.lower()
+        if key in self._storage:
+            return self._storage[key]
+        return value
 
-	def keys(self):
-		return self._storage.keys()
+    def keys(self):
+        return self._storage.keys()
 
 
 class LovetzPlugin(object):
@@ -79,11 +79,64 @@ class LovetzCookie(object):
 
     """
     __slots__ = ['httponly', 'secure', 'comment', 'path', 'name',
-                 'value', 'expires', 'other']
+                 'value', 'expires', 'other', 'domain', 'version']
 
     def __init__(self, name, value, httponly=False, secure=False,
-                 comment=None, path=None, expires=None):
-        pass
+                 comment=None, path=None, expires=None, domain=None, **other):
+        self.name = name
+        self.value = value
+        self.httponly = httponly
+        self.domain = domain
+        self.secure = secure
+        self.comment = comment
+        self.path = path
+        self.expires = expires
+        self.other = other
+
+    @staticmethod
+    def parse_response(val):
+
+        if val[0:11].lower() == "set-cookie:":
+            val = val[11:]
+        elif val[0:12].lower() == "set-cookie2:":
+            val = val[12:]
+
+        vals = val.split(";")
+        n,v = vals[0].strip().split("=")
+        vals = vals[1:]
+        h = {
+            'name': n,
+            'value': v
+        }
+        for v in vals:
+            parts = v.strip().split("=")
+
+            if len(parts) == 1:
+                if parts[0].lower() == "httponly":
+                    h['httponly'] = True
+                elif parts[0].lower() == "secure":
+                    h['secure'] = True
+                else:
+                    h[parts[0]] = True
+            else:
+                h[parts[0]] = parts[1]
+
+        return LovetzCookie(**h)
+
+    @staticmethod
+    def parse_request(val):
+
+        if val[0:7].lower() == "cookie:":
+            val = val[7:]
+
+        vals = val.split(";")
+        cookies = []
+
+        for v in vals:
+            k, cv = v.split("=")
+            cookies.append(LovetzCookie(name=k, value=cv))
+
+        return cookies
 
 
 class CookiePlugin(LovetzPlugin):
@@ -183,29 +236,29 @@ class JSDumpingPlugin(LovetzPlugin):
 
 if __name__ == "__main__":
 
-for item in tree.iterfind('./item'):
-	url, response = "", ""
-	for c in item.getchildren():
-		if c.tag == "url":
-			url = c.text
-		elif c.tag == "response":
-			try:
-				response = c.text.decode('base64')
-			except:
-				response = c.text
+    for item in tree.iterfind('./item'):
+        url, response = "", ""
+        for c in item.getchildren():
+            if c.tag == "url":
+                url = c.text
+            elif c.tag == "response":
+                try:
+                    response = c.text.decode('base64')
+                except:
+                    response = c.text
 
-	if domre.search(url) is None:
-		continue
+        if domre.search(url) is None:
+            continue
 
-	if response is None:
-		continue
+        if response is None:
+            continue
 
-	tmp = response.split('\r\n\r\n')
-	tmp = tmp[0].split('\r\n')
+        tmp = response.split('\r\n\r\n')
+        tmp = tmp[0].split('\r\n')
 
-	headers = HeaderDict()
+        headers = HeaderDict()
 
-	for t in tmp:
-		if ':' in t:
-			k,v = t.split(': ', 1)
-			headers[k] = v
+        for t in tmp:
+            if ':' in t:
+                k,v = t.split(': ', 1)
+                headers[k] = v
