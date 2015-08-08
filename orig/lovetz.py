@@ -1,13 +1,10 @@
 import os
 from xml.etree.ElementTree import parse
+import json
 import re
 import argparse
-
-#os.chdir(r'CHANGE TO PATH')
-#files = os.listdir('.')
-target = ""
-domre = re.compile('HOST')
-#tree = parse('CHANGE TO FILE.xml')
+import sys
+import getopt
 
 
 class HeaderDict(object):
@@ -48,10 +45,14 @@ class HeaderDict(object):
 
 class LovetzPlugin(object):
 
-    def __init__(self):
-        self.domre = re.compile('HOST')
+    def __init__(self, dom=None):
+
+        if dom not is None:
+            self.domre = re.compile(dom)
+        else:
+            self.domre = None
         self.secre = re.compile('[Ss][Ee][Cc][Uu][Rr][Ee];?')
-        self.htore = re.compile('[Hh][Tt]{2}[Pp]-[Oo][Nn][Ll][Yy];?')
+        self.htore = re.compile('[Hh][Tt]{2}[Pp][Oo][Nn][Ll][Yy];?')
         pass
 
     def check(self, url, response_headers, request_headers,
@@ -139,38 +140,46 @@ class LovetzCookie(object):
         return cookies
 
 
+
 class CookiePlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response, request):
+
+        # I wonder if we should check other things, like comment
+        # vesion, expires, path...
+
+        cookies_httponly = [] # missing httponly
+        cookies_secure = []   # missing secure
+        cookies_both = []     # missing both
+        cookies_fine = []     # having all flags
+
         if "set-cookie" in response_headers:
             tmp = response_headers['set-cookie']
             if isinstance(tmp, list):
-                misc, miss = False, False
+
                 for cookie in tmp:
 
-                    if 'httponly' not in cookie:
-                        misc = True
-                    if 'secure' not in cookie:
-                        miss = True
+                    c = LovetzCookie.parse_response(cookie)
 
-                    if not misc and not miss:
-                        print "Cookies contain all necessary response_headers"
+                    if not c.httponly and not c.secure:
+                        cookies_both.append(cookie)
+                    elif not c.httponly:
+                        cookies_httponly.append(cookie)
+                    elif not c.secure:
+                        cookies_secure.append(cookie)
                     else:
-                        print "Cookie missing: "
-                        if misc:
-                            print "httponly ",
-                        if miss:
-                            print "secure ",
-
-                        print ""
+                        cookies_fine.append(cookie)
             else:
-                tmp = tmp.lower()
-                if 'httponly' not in tmp:
-                    print "cookie missing httponly: {0}".format(response_headers['set-cookie'])
-
-                if 'secure' not in tmp:
-                    print "cookie missing secure: {0}".format(response_headers['set-cookie'])
+                c = LovetzCookie.parse_response(tmp)
+                if not c.httponly and not c.secure:
+                    cookies_both.append(tmp)
+                elif not c.httponly:
+                    cookies_httponly.append(tmp)
+                elif not c.secure:
+                    cookies_secure.append(tmp)
+                else:
+                    cookies_fine.append(tmp)
         else:
             pass
 
@@ -235,6 +244,15 @@ class JSDumpingPlugin(LovetzPlugin):
 
 
 if __name__ == "__main__":
+
+    #os.chdir(r'CHANGE TO PATH')
+    #files = os.listdir('.')
+    target = ""
+    #tree = parse('CHANGE TO FILE.xml')
+
+    if sys.argv == 1:
+        print "usage: lovetz.py [options] <file>"
+        sys.exit(0)
 
     for item in tree.iterfind('./item'):
         url, response = "", ""
