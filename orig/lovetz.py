@@ -75,7 +75,9 @@ class CORSPlugin(LovetzPlugin):
 
         headers = ["access-control-allow-methods",
                    "access-control-allow-headers",
-                   "access-control-max-age"]
+                   "access-control-max-age",
+                   "access-control-expose-headers",
+                   "access-control-allow-credentials"]
 
         if 'access-control-allow-origin' in response_headers:
             val = response_headers['access-control-allow-origin']
