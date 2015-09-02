@@ -55,6 +55,10 @@ class LovetzPlugin(object):
         self.htore = re.compile('[Hh][Tt]{2}[Pp][Oo][Nn][Ll][Yy];?')
         pass
 
+    # perhaps implement a "test" method here, that does the DOM check
+    # prior to executing the check? That would mean plugins can be
+    # free of code that checks the domain...
+
     def check(self, url, response_headers, request_headers,
               response, request):
         raise NotImplemented("base lovetz plugin class")
@@ -68,8 +72,29 @@ class CORSPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response, request):
+
+        headers = ["access-control-allow-methods",
+                   "access-control-allow-headers",
+                   "access-control-max-age"]
+
         if 'access-control-allow-origin' in response_headers:
-            print "Header report for {0}".format(url)
+            val = response_headers['access-control-allow-origin']
+
+            if val == "*":
+                self.log(LOG_WARN,
+                         url,
+                         "Widely-scoped access-control-allow-origin header")
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         "CORS Origin: {0}".format(val))
+
+        for header in headers:
+            if header in response_headers:
+                val = response_headers[header]
+                self.log(LOG_INFO,
+                         url,
+                         "CORS Header {0} with value {1}".format(header, val))
 
 
 class LovetzCookie(object):
