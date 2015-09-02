@@ -59,11 +59,8 @@ class LovetzPlugin(object):
               response, request):
         raise NotImplemented("base lovetz plugin class")
 
-    def log_url(self, event, url, message):
-        pass
-
-    def log(self, event, url, request_heders, response_headers,
-            response, request, message):
+    def log(self, event, url, message, request_heders=None,
+            response_headers=None, response=None, request=None):
         pass
 
 
@@ -103,7 +100,7 @@ class LovetzCookie(object):
             val = val[12:]
 
         vals = val.split(";")
-        n,v = vals[0].strip().split("=")
+        n, v = vals[0].strip().split("=")
         vals = vals[1:]
         h = {
             'name': n,
@@ -140,7 +137,6 @@ class LovetzCookie(object):
         return cookies
 
 
-
 class CookiePlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
@@ -149,8 +145,8 @@ class CookiePlugin(LovetzPlugin):
         # I wonder if we should check other things, like comment
         # vesion, expires, path...
 
-        cookies_httponly = [] # missing httponly
-        cookies_secure = []   # missing secure
+        cookies_httponly = []  # missing httponly
+        cookies_secure = []    # missing secure
         cookies_both = []     # missing both
         cookies_fine = []     # having all flags
 
@@ -183,6 +179,34 @@ class CookiePlugin(LovetzPlugin):
         else:
             pass
 
+        if cookies_httponly:
+            msg = "Cookies missing 'http only': {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([c.name
+                                           for c in cookies_httponly])))
+
+        if cookies_secure:
+            msg = "Cookies missing 'secure': {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([c.name
+                                           for c in cookies_httponly])))
+
+        if cookies_both:
+            msg = "Cookies missing both 'secure' and 'http only': {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([c.name
+                                           for c in cookies_httponly])))
+
+        if cookies_httponly:
+            msg = "Cookies with the correct flags: {0}"
+            self.log(LOG_INFO,
+                     url,
+                     msg.format(', '.join([c.name
+                                           for c in cookies_httponly])))
+
 
 class HeaderPlugin(LovetzPlugin):
 
@@ -192,45 +216,80 @@ class HeaderPlugin(LovetzPlugin):
 
         if "cache-control" in response_headers:
             if "must-revalidate" not in response_headers["cache-control"]:
-                print "URL returns a weak 'cache-control' value: {0}".format(response_headers["cache-control"])
+                msg = "Weak 'cache-control' value: {0}"
+                self.log(LOG_WARN,
+                         url,
+                         msg.format(response_headers["cache-control"])
         else:
-            print "Cache-control header not found!"
+            self.log(LOG_WARN,
+                     url,
+                     "Cache-control header not found!")
 
         if "pragma" in response_headers:
+            msg = "Site defines a pragma header with value {0}"
             if response_headers["pragma"] != "no-cache":
-                print "Site defines a pragma header with value {0}".format(response_headers["pragma"])
+                self.log(LOG_WARN,
+                         url,
+                         msg.format(response_headers["pragma"])
         else:
-            print "Pragma header not found!"
+            self.log(LOG_WARN,
+                     url,
+                     "Pragma header not found!")
 
         if "x-xss-protection" in response_headers:
             if response_headers["x-xss-protection"] != "1; mode=block":
-                print "Weak 'x-xss-protection' header defined!"
+                self.log(LOG_WARN,
+                         url,
+                        "Weak 'x-xss-protection' header defined!")
         else:
-            print "No X-XSS-Protection header defined!"
+            self.log(LOG_WARN,
+                     url,
+                     "No X-XSS-Protection header defined!")
 
         if "x-content-type-options" in response_headers:
+            msg = "Site returns weak 'x-content-type-options' value: {0}"
             if response_headers['x-content-type-options'] != 'nosniff':
-                print "Site returns weak 'x-content-type-options' value: {0}".format(response_headers['x-content-type-options'])
+                self.log(LOG_WARN,
+                         url,
+                         msg.format(response_headers['x-content-type-options'])
         else:
-            print "x-content-type-options not found!"
+            self.log(LOG_WARN,
+                     url,
+                     "x-content-type-options not found!")
 
         if "expires" in response_headers:
-            print "Expires value: {0}".format(response_headers['expires'])
+            self.log(LOG_WARN,
+                     url,
+                     "Expires value: {0}".format(response_headers['expires'])
         else:
-            print "Expires header not defined!"
+            self.log(LOG_WARN,
+                     url,
+                     "Expires header not defined!")
 
         if "x-frame-options" in response_headers:
-            print "x-frame-options value: {0}".format(response_headers['x-frame-options'])
+            # need to do actual analysis here...
+            msg = "x-frame-options value: {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(response_headers['x-frame-options'])
         else:
-            print "x-frame-options header not defined!"
+            self.log(LOG_WARN,
+                     url,
+                     "x-frame-options header not defined!")
 
+        # could probably do some app finger printing here...
 
         if "x-powered-by" in response_headers:
-            print "x-powered-by value found! {0}".format(response_headers['x-powered-by'])
+            msg = "x-powered-by value found! {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(response_headers['x-powered-by']))
 
         if "server" in response_headers:
-            print "server value found: {0}".format(response_headers['server'])
-            pass
+            msg = "server value found: {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(response_headers['server']))
 
 
 class JSDumpingPlugin(LovetzPlugin):
@@ -278,5 +337,5 @@ if __name__ == "__main__":
 
         for t in tmp:
             if ':' in t:
-                k,v = t.split(': ', 1)
+                k, v = t.split(': ', 1)
                 headers[k] = v
