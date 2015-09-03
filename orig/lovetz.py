@@ -7,6 +7,11 @@ import sys
 import getopt
 
 
+LOG_ERROR = 2
+LOG_WARN = 1
+LOG_INFO = 0
+
+
 class HeaderDict(object):
 
     def __init__(self, allow_multiple=False):
@@ -47,7 +52,7 @@ class LovetzPlugin(object):
 
     def __init__(self, dom=None):
 
-        if dom not is None:
+        if dom is not None:
             self.domre = re.compile(dom)
         else:
             self.domre = None
@@ -246,7 +251,7 @@ class HeaderPlugin(LovetzPlugin):
                 msg = "Weak 'cache-control' value: {0}"
                 self.log(LOG_WARN,
                          url,
-                         msg.format(response_headers["cache-control"])
+                         msg.format(response_headers["cache-control"]))
         else:
             self.log(LOG_WARN,
                      url,
@@ -257,7 +262,7 @@ class HeaderPlugin(LovetzPlugin):
             if response_headers["pragma"] != "no-cache":
                 self.log(LOG_WARN,
                          url,
-                         msg.format(response_headers["pragma"])
+                         msg.format(response_headers["pragma"]))
         else:
             self.log(LOG_WARN,
                      url,
@@ -278,7 +283,7 @@ class HeaderPlugin(LovetzPlugin):
             if response_headers['x-content-type-options'] != 'nosniff':
                 self.log(LOG_WARN,
                          url,
-                         msg.format(response_headers['x-content-type-options'])
+                         msg.format(response_headers['x-content-type-options']))
         else:
             self.log(LOG_WARN,
                      url,
@@ -287,7 +292,7 @@ class HeaderPlugin(LovetzPlugin):
         if "expires" in response_headers:
             self.log(LOG_WARN,
                      url,
-                     "Expires value: {0}".format(response_headers['expires'])
+                     "Expires value: {0}".format(response_headers['expires']))
         else:
             self.log(LOG_WARN,
                      url,
@@ -298,7 +303,7 @@ class HeaderPlugin(LovetzPlugin):
             msg = "x-frame-options value: {0}"
             self.log(LOG_WARN,
                      url,
-                     msg.format(response_headers['x-frame-options'])
+                     msg.format(response_headers['x-frame-options']))
         else:
             self.log(LOG_WARN,
                      url,
@@ -329,6 +334,112 @@ class JSDumpingPlugin(LovetzPlugin):
         pass
 
 
+class LovetzReader(object):
+
+    def __init__(self, filename=None, loadNow=False, dom=None, domre=False):
+        self.filename = filename
+
+        if loadNow:
+            self.load()
+
+        if dom:
+            if not domre: # the dom param is NOT a regular expression...
+                # so we want to make the READER check whether or not we should
+                # consume an object, rather than plugin. In this case, the 
+                # domain is *NOT* a regular expression, so we convert
+                # it into one.
+                self.dom = re.compile(dom.replace(".",
+                                                  "\\.").replace("?",
+                                                                 "\\?"),
+                                      re.I)
+            else:
+                self.dom = re.compile(dom, re.I)
+        else:
+            self.dom = None
+
+    def load(self, filename=None):
+        raise NotImplemented("load not implemented in base")
+
+    def loadable(self):
+        raise NotImplemented("loadable not implemented in base")
+
+    def iteritem(self):
+        raise NotImplemented("iteritem not implemented in base")
+
+
+class ChromeHARReader(LovetzReader):
+
+    def load(self, filename=None):
+        if filename is not None:
+            self.filename = filename
+
+        pass
+
+    def iteritem(self):
+        pass
+
+
+class FirefoxReader(LovetzReader):
+
+    def load(self, filename=None):
+        if filename is not None:
+            self.filename = filename
+
+        pass
+
+    def iteritem(self):
+        pass
+
+
+class BurpProxyReader(LovetzReader):
+
+    def load(self, filename=None):
+        if filename is not None:
+            self.filename = filename
+
+        pass
+
+    def iteritem(self):
+        for item in tree.iterfind('./item'):
+            url, response, request = "", "", ""
+            for c in item.getchildren():
+                if c.tag == "url":
+                    url = c.text
+                elif c.tag == "response":
+                    try:
+                        response = c.text.decode('base64')
+                    except:
+                        response = c.text
+
+            if domre.search(url) is None:
+                continue
+
+            if response is None:
+                continue
+
+            tmp = response.split('\r\n\r\n')
+            tmp = tmp[0].split('\r\n')
+
+            headers = HeaderDict()
+
+            for t in tmp:
+                if ':' in t:
+                    k, v = t.split(': ', 1)
+                    headers[k] = v
+
+
+class IEReader(LovetzReader):
+
+    def load(self, filename=None):
+        if filename is not None:
+            self.filename = filename
+
+        pass
+
+    def iteritem(self):
+        pass
+
+
 if __name__ == "__main__":
 
     #os.chdir(r'CHANGE TO PATH')
@@ -340,29 +451,3 @@ if __name__ == "__main__":
         print "usage: lovetz.py [options] <file>"
         sys.exit(0)
 
-    for item in tree.iterfind('./item'):
-        url, response = "", ""
-        for c in item.getchildren():
-            if c.tag == "url":
-                url = c.text
-            elif c.tag == "response":
-                try:
-                    response = c.text.decode('base64')
-                except:
-                    response = c.text
-
-        if domre.search(url) is None:
-            continue
-
-        if response is None:
-            continue
-
-        tmp = response.split('\r\n\r\n')
-        tmp = tmp[0].split('\r\n')
-
-        headers = HeaderDict()
-
-        for t in tmp:
-            if ':' in t:
-                k, v = t.split(': ', 1)
-                headers[k] = v
