@@ -272,7 +272,7 @@ class HeaderPlugin(LovetzPlugin):
             if response_headers["x-xss-protection"] != "1; mode=block":
                 self.log(LOG_WARN,
                          url,
-                        "Weak 'x-xss-protection' header defined!")
+                         "Weak 'x-xss-protection' header defined!")
         else:
             self.log(LOG_WARN,
                      url,
@@ -280,10 +280,11 @@ class HeaderPlugin(LovetzPlugin):
 
         if "x-content-type-options" in response_headers:
             msg = "Site returns weak 'x-content-type-options' value: {0}"
+            val = response_headers['x-content-type-options']
             if response_headers['x-content-type-options'] != 'nosniff':
                 self.log(LOG_WARN,
                          url,
-                         msg.format(response_headers['x-content-type-options']))
+                         msg.format(val))
         else:
             self.log(LOG_WARN,
                      url,
@@ -343,9 +344,9 @@ class LovetzReader(object):
             self.load()
 
         if dom:
-            if not domre: # the dom param is NOT a regular expression...
+            if not domre:  # the dom param is NOT a regular expression...
                 # so we want to make the READER check whether or not we should
-                # consume an object, rather than plugin. In this case, the 
+                # consume an object, rather than plugin. In this case, the
                 # domain is *NOT* a regular expression, so we convert
                 # it into one.
                 self.dom = re.compile(dom.replace(".",
@@ -399,6 +400,21 @@ class BurpProxyReader(LovetzReader):
 
         pass
 
+    def _headers(self, item):
+        tmp = item.split('\r\n\r\n')
+        body = tmp[1]
+        tmp = tmp[0].split('\r\n')
+        status = tmp[0]
+        tmp = tmp[1:]
+
+        headers = HeaderDict()
+
+        for t in tmp:
+            if ':' in t:
+                k, v = t.split(': ', 1)
+                headers[k] = v
+        return (status, headers, body)
+
     def iteritem(self):
         for item in tree.iterfind('./item'):
             url, response, request = "", "", ""
@@ -410,22 +426,24 @@ class BurpProxyReader(LovetzReader):
                         response = c.text.decode('base64')
                     except:
                         response = c.text
+                elif c.tag == "request":
+                    try:
+                        request = c.text.decode('base64')
+                    except:
+                        request = c.text
 
-            if domre.search(url) is None:
+            if self.dom and self.dom.search(url) is None:
                 continue
+
+            # are there actually cases wherein we care about
+            # requests that failed... at the network level?
+            # debugging?
 
             if response is None:
                 continue
 
-            tmp = response.split('\r\n\r\n')
-            tmp = tmp[0].split('\r\n')
-
-            headers = HeaderDict()
-
-            for t in tmp:
-                if ':' in t:
-                    k, v = t.split(': ', 1)
-                    headers[k] = v
+            req_status, req_head, req_body = self._headers(request)
+            res_status, res_head, res_body = self._headers(response)
 
 
 class IEReader(LovetzReader):
@@ -450,4 +468,3 @@ if __name__ == "__main__":
     if sys.argv == 1:
         print "usage: lovetz.py [options] <file>"
         sys.exit(0)
-
