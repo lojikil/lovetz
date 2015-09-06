@@ -335,6 +335,49 @@ class JSDumpingPlugin(LovetzPlugin):
         pass
 
 
+class LovetzHistoryItem(object):
+
+    __slots__ = ['url', 'request_status', 'request_headers', 'request_body',
+                 'response_status', 'response_headers', 'response_body']
+
+    def __init__(self, url, req_status, req_headers, req_body,
+                 res_status, res_headers, res_body):
+        self.url = url
+        self.request_status = req_status
+        self.request_headers = request_headers
+        self.request_body = req_body
+        self.response_status = res_status
+        self.response_headers = res_headers
+        self.responese_body = res_body
+        self.myslots = ['url', 'request_status', 'request_headers',
+                        'request_body', 'response_status', 'response_headers',
+                        'response_body']
+
+    def keys(self):
+        return self.myslots
+
+    def __getitem__(self, key):
+        if key not in self.myslots:
+            return KeyError("no such key: {0}".format(key))
+
+        # I could do this by reaching into self.__class__, but...
+        # yuck
+        if key == "url":
+            return self.url
+        elif key == "request_status":
+            return self.request_status
+        elif key == "request_headers":
+            return self.request_headers
+        elif key == "request_body":
+            return self.request_body
+        elif key == "response_status":
+            return self.response_status
+        elif key == "response_headers":
+            return self.response_headers
+        elif key == "response_body":
+            return self.response_body
+
+
 class LovetzReader(object):
 
     def __init__(self, filename=None, loadNow=False, dom=None, domre=False):
@@ -444,6 +487,9 @@ class BurpProxyReader(LovetzReader):
 
             req_status, req_head, req_body = self._headers(request)
             res_status, res_head, res_body = self._headers(response)
+
+            yield LovetzHistoryItem(url, req_status, req_head, req_body,
+                                    res_status, res_head, res_body)
 
 
 class IEReader(LovetzReader):
