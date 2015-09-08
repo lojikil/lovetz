@@ -439,28 +439,26 @@ class LovetzReader(object):
         raise NotImplemented("iteritem not implemented in base")
 
 
-class ChromeHARReader(LovetzReader):
+class HARReader(LovetzReader):
 
     def load(self, filename=None):
         if filename is not None:
             self.filename = filename
-
-        pass
-
-    def iteritem(self):
-        pass
-
-
-class FirefoxReader(LovetzReader):
-
-    def load(self, filename=None):
-        if filename is not None:
-            self.filename = filename
-
-        pass
+            self.json_doc = None
+            with file(self.filename, 'r') as f:
+                self.json_doc = json.load(f)
+        else:
+            self.filename = None
+            self.json_doc = None
 
     def iteritem(self):
-        pass
+        for entry in self.json_doc['log']['entries']:
+            url = entry['request']['url']
+            if entry['request']['bodySize'] == 0:
+                req_body = ''
+            else:
+                req_body = entry['request']['body']
+
 
 
 class BurpProxyReader(LovetzReader):
