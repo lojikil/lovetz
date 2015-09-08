@@ -278,18 +278,23 @@ class HeaderPlugin(LovetzPlugin):
 
         if "x-content-type-options" in response_headers:
             msg = "Site returns weak 'x-content-type-options' value: {0}"
+            pos_msg = "Site returns relatively strong 'x-content-type-options'"
             val = response_headers['x-content-type-options']
             if response_headers['x-content-type-options'] != 'nosniff':
                 self.log(LOG_WARN,
                          url,
                          msg.format(val))
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         pos_msg)
         else:
             self.log(LOG_WARN,
                      url,
                      "x-content-type-options not found")
 
         if "expires" in response_headers:
-            self.log(LOG_WARN,
+            self.log(LOG_INFO,
                      url,
                      "Expires value: {0}".format(response_headers['expires']))
         else:
@@ -299,10 +304,28 @@ class HeaderPlugin(LovetzPlugin):
 
         if "x-frame-options" in response_headers:
             # need to do actual analysis here...
-            msg = "x-frame-options value: {0}"
-            self.log(LOG_WARN,
-                     url,
-                     msg.format(response_headers['x-frame-options']))
+            msg = "non-standard x-frame-options value: {0}"
+            dmsg = "site denies framing"
+            smsg = "site allows framing from same origin"
+            amsg = "site allows framing from: {0}"
+            val = response_headers['x-frame-options']
+
+            if val.lower() == "sameorigin":
+                self.log(LOG_INFO,
+                         url,
+                         smsg)
+            elif val.lower() == "deny":
+                self.log(LOG_INFO,
+                         url,
+                         dmsg)
+            elif val.lower().startswith("allow"):
+                self.log(LOG_INFO,
+                         url,
+                         amsg.format(val))
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         msg.format(val))
         else:
             self.log(LOG_WARN,
                      url,
