@@ -509,11 +509,6 @@ class IEReader(LovetzReader):
 
 if __name__ == "__main__":
 
-    #os.chdir(r'CHANGE TO PATH')
-    #files = os.listdir('.')
-    target = ""
-    #tree = parse('CHANGE TO FILE.xml')
-
     if sys.argv == 1:
         print "usage: lovetz.py [options] <file>"
         sys.exit(0)
