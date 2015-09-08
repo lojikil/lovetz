@@ -62,7 +62,14 @@ class LovetzPlugin(object):
 
     def log(self, event, url, message, request_heders=None,
             response_headers=None, response=None, request=None):
-        pass
+
+        # really, this should be just access a class-level member that
+        # handles the actual output... but for now this is enough.
+
+        outputs = ["[-]", "[!]", "[+]"]
+        print "{0} {1} for {2}".format(outputs[event],
+                                       message,
+                                       url)
 
 
 class CORSPlugin(LovetzPlugin):
@@ -236,7 +243,6 @@ class HeaderPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        print "Header report for {0}".format(url)
 
         if "cache-control" in response_headers:
             if "must-revalidate" not in response_headers["cache-control"]:
@@ -247,7 +253,7 @@ class HeaderPlugin(LovetzPlugin):
         else:
             self.log(LOG_WARN,
                      url,
-                     "Cache-control header not found!")
+                     "Cache-control header not found")
 
         if "pragma" in response_headers:
             msg = "Site defines a pragma header with value {0}"
@@ -258,17 +264,17 @@ class HeaderPlugin(LovetzPlugin):
         else:
             self.log(LOG_WARN,
                      url,
-                     "Pragma header not found!")
+                     "Pragma header not found")
 
         if "x-xss-protection" in response_headers:
             if response_headers["x-xss-protection"] != "1; mode=block":
                 self.log(LOG_WARN,
                          url,
-                         "Weak 'x-xss-protection' header defined!")
+                         "Weak 'x-xss-protection' header defined")
         else:
             self.log(LOG_WARN,
                      url,
-                     "No X-XSS-Protection header defined!")
+                     "No X-XSS-Protection header defined")
 
         if "x-content-type-options" in response_headers:
             msg = "Site returns weak 'x-content-type-options' value: {0}"
@@ -280,7 +286,7 @@ class HeaderPlugin(LovetzPlugin):
         else:
             self.log(LOG_WARN,
                      url,
-                     "x-content-type-options not found!")
+                     "x-content-type-options not found")
 
         if "expires" in response_headers:
             self.log(LOG_WARN,
@@ -289,7 +295,7 @@ class HeaderPlugin(LovetzPlugin):
         else:
             self.log(LOG_WARN,
                      url,
-                     "Expires header not defined!")
+                     "Expires header not defined")
 
         if "x-frame-options" in response_headers:
             # need to do actual analysis here...
@@ -300,7 +306,7 @@ class HeaderPlugin(LovetzPlugin):
         else:
             self.log(LOG_WARN,
                      url,
-                     "x-frame-options header not defined!")
+                     "x-frame-options header not defined")
 
         # could probably do some app finger printing here...
 
@@ -311,7 +317,8 @@ class HeaderPlugin(LovetzPlugin):
                      msg.format(response_headers['x-powered-by']))
 
         if "server" in response_headers:
-            msg = "server value found: {0}"
+            val = response_headers["server"]
+            msg = "server value found: \"{0}\""
             self.log(LOG_WARN,
                      url,
                      msg.format(response_headers['server']))
@@ -436,7 +443,6 @@ class FirefoxReader(LovetzReader):
 class BurpProxyReader(LovetzReader):
 
     def load(self, filename=None):
-        print filename
         if filename is not None:
             self.filename = filename
             self.tree = parse(self.filename)
