@@ -50,19 +50,11 @@ class HeaderDict(object):
 
 class LovetzPlugin(object):
 
-    def __init__(self, dom=None):
+    def __init__(self):
+        # no longer need to have the DOM checks here; moved them to the
+        # reader, which I believe is a cleaner location.
 
-        if dom is not None:
-            self.domre = re.compile(dom)
-        else:
-            self.domre = None
-        self.secre = re.compile('[Ss][Ee][Cc][Uu][Rr][Ee];?')
-        self.htore = re.compile('[Hh][Tt]{2}[Pp][Oo][Nn][Ll][Yy];?')
         pass
-
-    # perhaps implement a "test" method here, that does the DOM check
-    # prior to executing the check? That would mean plugins can be
-    # free of code that checks the domain...
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, request_status, response_status):
