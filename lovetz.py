@@ -329,6 +329,11 @@ class JSDumpingPlugin(LovetzPlugin):
 
 class LovetzHistoryItem(object):
 
+    # perhaps History items should have a cookie jar attached? That way plugins
+    # that wants to operate on cookies needn't do the creation themselves, but
+    # rather there would already be a cookie jar attached here... creates a bit
+    # more work for the history readers, but shouldn't be terribly difficult...
+
     __slots__ = ['url', 'request_status', 'request_headers', 'request_body',
                  'response_status', 'response_headers', 'response_body',
                  'myslots']
