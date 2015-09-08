@@ -65,7 +65,7 @@ class LovetzPlugin(object):
     # free of code that checks the domain...
 
     def check(self, url, response_headers, request_headers,
-              response, request):
+              response_body, request_body, request_status, response_status):
         raise NotImplemented("base lovetz plugin class")
 
     def log(self, event, url, message, request_heders=None,
@@ -76,7 +76,7 @@ class LovetzPlugin(object):
 class CORSPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
-              response, request):
+              response_body, request_body, request_status, response_status):
 
         headers = ["access-control-allow-methods",
                    "access-control-allow-headers",
@@ -172,7 +172,7 @@ class LovetzCookie(object):
 class CookiePlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
-              response, request):
+              response_body, request_body, response_status, request_status):
 
         # I wonder if we should check other things, like comment
         # vesion, expires, path...
@@ -242,8 +242,8 @@ class CookiePlugin(LovetzPlugin):
 
 class HeaderPlugin(LovetzPlugin):
 
-    def check(self, url, response_response_headers, request_response_headers,
-              response, request):
+    def check(self, url, response_headers, request_headers,
+              response_body, request_body, response_status, request_status):
         print "Header report for {0}".format(url)
 
         if "cache-control" in response_headers:
@@ -331,24 +331,25 @@ class JSDumpingPlugin(LovetzPlugin):
     # with his tool
 
     def check(self, url, response_headers, request_headers,
-              response, request):
+              response_body, request_body, response_status, request_status):
         pass
 
 
 class LovetzHistoryItem(object):
 
     __slots__ = ['url', 'request_status', 'request_headers', 'request_body',
-                 'response_status', 'response_headers', 'response_body']
+                 'response_status', 'response_headers', 'response_body',
+                 'myslots']
 
     def __init__(self, url, req_status, req_headers, req_body,
                  res_status, res_headers, res_body):
         self.url = url
         self.request_status = req_status
-        self.request_headers = request_headers
+        self.request_headers = req_headers
         self.request_body = req_body
         self.response_status = res_status
         self.response_headers = res_headers
-        self.responese_body = res_body
+        self.response_body = res_body
         self.myslots = ['url', 'request_status', 'request_headers',
                         'request_body', 'response_status', 'response_headers',
                         'response_body']
@@ -438,10 +439,13 @@ class FirefoxReader(LovetzReader):
 class BurpProxyReader(LovetzReader):
 
     def load(self, filename=None):
+        print filename
         if filename is not None:
             self.filename = filename
-
-        pass
+            self.tree = parse(self.filename)
+        else:
+            self.tree = None
+            self.filename = None
 
     def _headers(self, item):
         tmp = item.split('\r\n\r\n')
@@ -459,7 +463,9 @@ class BurpProxyReader(LovetzReader):
         return (status, headers, body)
 
     def iteritem(self):
-        for item in tree.iterfind('./item'):
+        if self.tree is None:
+            raise Exception("no file has been previously loaded")
+        for item in self.tree.iterfind('./item'):
             url, response, request = "", "", ""
             for c in item.getchildren():
                 if c.tag == "url":
@@ -514,3 +520,14 @@ if __name__ == "__main__":
     if sys.argv == 1:
         print "usage: lovetz.py [options] <file>"
         sys.exit(0)
+
+    # for now, just spin up all plugins and run them
+    # against the Burp reader.
+
+    br = BurpProxyReader()
+    br.load(sys.argv[1])
+    plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin()]
+
+    for item in br.iteritem():
+        for plugin in plugins:
+            plugin.check(**item)
