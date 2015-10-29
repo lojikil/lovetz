@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<log>
+	<version>1.1</version>
+	<creator>
+		<name>Internet Explorer Network Inspector</name>
+		<version>11.0.9600.17420</version>
+	</creator>
+	<browser>
+		<name>Internet Explorer</name>
+		<version>11.0.9600.17420</version>
+	</browser>
+	<pages>
+		<page>
+			<startedDateTime>2015-10-22T18:44:18.9-05:00</startedDateTime>
+			<id>0</id>
+			<title/>
+			<pageTimings>
+				<onContentLoad>656</onContentLoad>
+				<onLoad>692</onLoad>
+			</pageTimings>
+		</page>
+	</pages>
+	<entries>
+		<entry>
+			<pageref>0</pageref>
+			<startedDateTime>2015-10-22T18:44:18.9-05:00</startedDateTime>
+			<time>156</time>
+			<request>
+				<method>GET</method>
+				<url>http://lojikil.com/</url>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies/>
+				<headers>
+					<header>
+						<name>Accept</name>
+						<value>text/html, application/xhtml+xml, */*</value>
+					</header>
+					<header>
+						<name>Accept-Language</name>
+						<value>en-US</value>
+					</header>
+					<header>
+						<name>User-Agent</name>
+						<value>Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko</value>
+					</header>
+					<header>
+						<name>Accept-Encoding</name>
+						<value>gzip, deflate</value>
+					</header>
+					<header>
+						<name>Host</name>
+						<value>lojikil.com</value>
+					</header>
+					<header>
+						<name>Connection</name>
+						<value>Keep-Alive</value>
+					</header>
+					<header>
+						<name>Cache-Control</name>
+						<value>no-cache</value>
+					</header>
+				</headers>
+				<queryString/>
+				<headersSize>271</headersSize>
+				<bodySize>0</bodySize>
+			</request>
+			<response>
+				<status>200</status>
+				<statusText>OK</statusText>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies/>
+				<headers>
+					<header>
+						<name>Server</name>
+						<value>nginx</value>
+					</header>
+					<header>
+						<name>Date</name>
+						<value>Thu, 22 Oct 2015 18:44:18 GMT</value>
+					</header>
+					<header>
+						<name>Content-Type</name>
+						<value>text/html</value>
+					</header>
+					<header>
+						<name>Last-Modified</name>
+						<value>Tue, 09 Jun 2015 14:53:04 GMT</value>
+					</header>
+					<header>
+						<name>Transfer-Encoding</name>
+						<value>chunked</value>
+					</header>
+					<header>
+						<name>Connection</name>
+						<value>keep-alive</value>
+					</header>
+				</headers>
+				<content>
+					<size>2515</size>
+					<mimeType>text/html</mimeType>
+					<text>&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;&amp;#923;ojiki&amp;#955; | Home&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/main.css" type="text/css"&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;pre&gt;
+ _       _ _ _    _ _ 
+| |     (_|_) |  (_) |
+| | ___  _ _| | ___| |
+| |/ _ \| | | |/ / | |
+| | (_) | | |   &amp;lt;| | |
+|_|\___/| |_|_|\_\_|_|
+       _/ |           
+      |__/           
+    purveyors of fine, internet-related kipple since 1985.
+    &lt;/pre&gt;
+    &lt;hr&gt;
+    &lt;h1&gt;About this site&lt;/h1&gt;
+    &lt;p&gt;This site is the home page of &amp;quot;sae&amp;quot; a not-very important person. It is powered by OpenBSD &amp;amp; nginx, at the moment.
+ That might change going forward; I've been working on a webserver written in &lt;a href="/p/digamma/"&gt;Digamma&lt;/a&gt;. Also, my all important
+ &lt;a href="vimrc.html"&gt;.vimrc file&lt;/a&gt;&lt;/p&gt;
+    &lt;h1&gt;Recent updates&lt;/h1&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;09JUN2015&lt;/span&gt;: New wiki section: &lt;a href="/p/misc/security/"&gt;Security&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;Not dead yet! Multiple updates along the way...&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;31AUG2014&lt;/span&gt;: Spelling fix. (probably more to come)&lt;/li&gt;
+      &lt;li&gt;New Wiki Entry: &lt;a href="/p/misc/sysadmin/split-zips.html"&gt;Splitting &amp;amp; Splicing Zip files from the CLI.&lt;/a&gt;
+      &lt;li&gt;&lt;span&gt;09AUG2014&lt;/spane&gt;: Site Refresh&lt;/li&gt;
+      &lt;li&gt;New Wiki Entry: &lt;a href="/p/misc/sysadmin/git-postreceive.html"&gt;Git Post receive hooks&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;02JUN2014&lt;/span&gt;: Site's back&lt;/li&gt;
+      &lt;li&gt;New Project: &lt;a href="/p/lpn"&gt;Lojikil Programmer's Notebook&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;New Project: &lt;a href="/p/misc/"&gt;Misc Static Wiki Notes&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;25NOV2013&lt;/span&gt;: Site refresh; less harsh CSS styling.&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;02APR2013&lt;/span&gt;: nginx 1.3.15 update&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;24MAR2013&lt;/span&gt;: Site refresh; Desert (vim color scheme) like CSS added.&lt;/li&gt;
+      &lt;li&gt;Blag post: &lt;a href="/b/2.html"&gt;Digamma TODOs&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;22MAR2013&lt;/span&gt;: Site refresh; new footer, added more digamma information, &amp;amp;c.&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;13FEB2013&lt;/span&gt;: nginx 1.3.12 update&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;12DEC2012&lt;/span&gt;: nginx 1.3.9 update &lt;/li&gt;
+      &lt;li&gt;Blag post: &lt;a href="/b/1.html"&gt;Muse write up&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;Blag post: &lt;a href="/b/0.html"&gt;First Post&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;hr&gt;
+    &lt;a href="/"&gt;Home&lt;/a&gt; |
+    &lt;a href="/b/"&gt;Blag&lt;/a&gt; |
+    &lt;a href="/p/lpn/"&gt;Lojikil's Programmer Notebook&lt;/a&gt; |
+    &lt;a href="/p/"&gt; Projects&lt;/a&gt; |
+    &lt;a href="https://twitter.com/lojikil"&gt;Twitter&lt;/a&gt; |
+    &lt;a href="https://github.com/lojikil"&gt;Github&lt;/a&gt; |
+    &lt;a href="https://bitbucket.org/saedwards"&gt;BitBucket&lt;/a&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</text>
+				</content>
+				<redirectionURL/>
+				<headersSize>194</headersSize>
+				<bodySize>2515</bodySize>
+			</response>
+			<cache/>
+			<timings>
+				<send>141</send>
+				<wait>15</wait>
+				<receive>0</receive>
+			</timings>
+		</entry>
+		<entry>
+			<pageref>0</pageref>
+			<startedDateTime>2015-10-22T18:44:18.165-05:00</startedDateTime>
+			<time>31</time>
+			<request>
+				<method>GET</method>
+				<url>http://lojikil.com/main.css</url>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies/>
+				<headers>
+					<header>
+						<name>Accept</name>
+						<value>text/css, */*</value>
+					</header>
+					<header>
+						<name>Referer</name>
+						<value>http://lojikil.com/</value>
+					</header>
+					<header>
+						<name>Accept-Language</name>
+						<value>en-US</value>
+					</header>
+					<header>
+						<name>User-Agent</name>
+						<value>Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko</value>
+					</header>
+					<header>
+						<name>Accept-Encoding</name>
+						<value>gzip, deflate</value>
+					</header>
+					<header>
+						<name>Host</name>
+						<value>lojikil.com</value>
+					</header>
+					<header>
+						<name>Connection</name>
+						<value>Keep-Alive</value>
+					</header>
+					<header>
+						<name>Cache-Control</name>
+						<value>no-cache</value>
+					</header>
+				</headers>
+				<queryString/>
+				<headersSize>285</headersSize>
+				<bodySize>0</bodySize>
+			</request>
+			<response>
+				<status>200</status>
+				<statusText>OK</statusText>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies/>
+				<headers>
+					<header>
+						<name>Server</name>
+						<value>nginx</value>
+					</header>
+					<header>
+						<name>Date</name>
+						<value>Thu, 22 Oct 2015 18:44:18 GMT</value>
+					</header>
+					<header>
+						<name>Content-Type</name>
+						<value>text/css</value>
+					</header>
+					<header>
+						<name>Content-Length</name>
+						<value>1118</value>
+					</header>
+					<header>
+						<name>Last-Modified</name>
+						<value>Sat, 12 Apr 2014 02:16:37 GMT</value>
+					</header>
+					<header>
+						<name>Connection</name>
+						<value>keep-alive</value>
+					</header>
+					<header>
+						<name>Accept-Ranges</name>
+						<value>bytes</value>
+					</header>
+				</headers>
+				<content>
+					<size>1118</size>
+					<mimeType>text/css</mimeType>
+					<text>* {
+    margin: 10;
+    background:#eee;
+}
+
+pre {
+    //color:#fff;
+    font-family: monospace;
+}
+/*
+body, p, li {
+  width:auto;
+  left:620px;
+  color: #fff;
+  font-family:sans-serif;
+}
+*/
+.muse-bold {
+    font-weight: bold;
+    margin: 0;
+}
+.muse-italic {
+    text-decoration: italic;
+    margin: 0;
+}
+span {
+    //color: lightblue;
+    font-family: sans-serif;
+    text-decoration: underline;
+    margin: 0;
+}
+h1 {
+    text-decoration: underline;
+    font-family: sans-serif;
+    font-size: 20px;
+    color: blueviolet;
+}
+a {
+    font-family: sans-serif;
+    //color: chartreuse;
+	text-decoration: none;
+    margin: 0;
+}
+
+body { 
+	font-family:sans-serif;
+	//margin: 1em;
+	border:thin;
+	//padding: .5em; 
+	//background: #FFF;
+}
+.footer {  padding-top: 1em; color: grey; }
+
+code {
+    margin: 0;
+}
+
+pre {
+    margin: 0;
+}
+/*h1 {
+	background-image: url(images/home.png);
+	background-repeat: no-repeat;
+	height: 64px;
+	vertical-align:middle;
+	background-position: right center;
+}
+*/
+h2 {
+    font-size: 16px;
+    font-family: sans-serif;
+	border-bottom: .1em dashed #000000;
+    padding: 5px;
+}
+p {
+	margin-left: 1em;
+}
+</text>
+				</content>
+				<redirectionURL/>
+				<headersSize>209</headersSize>
+				<bodySize>1118</bodySize>
+			</response>
+			<cache/>
+			<timings>
+				<send>0</send>
+				<wait>31</wait>
+				<receive>0</receive>
+			</timings>
+		</entry>
+		<entry>
+			<pageref>0</pageref>
+			<startedDateTime>2015-10-22T18:44:18.181-05:00</startedDateTime>
+			<time>93</time>
+			<request>
+				<method>GET</method>
+				<url>http://otf.msn.com/c.gif?rid=e97d91f49d4d442b8a5e7dd5b6432f04&amp;cts=1445539458184&amp;clid=08CBD2700E636DB11D92DA380FF36C45&amp;di=340&amp;mkt=en-us&amp;pn=startpage&amp;su=http%253A%252F%252Fwww.msn.com%252F%253Focid%253Diehp&amp;pid=startpage&amp;mv=15&amp;cv.product=prime&amp;flightid=muidflt3cf%2Cd-thshldie1%2Cd-thshldie2&amp;exa=muidflt3cf%2Cd-thshldie1%2Cd-thshldie2&amp;activityId=e97d91f49d4d442b8a5e7dd5b6432f04&amp;cvs=Browser&amp;subcvs=homepage&amp;evt=unload</url>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies>
+					<cookie>
+						<name>_EDGE_S</name>
+						<value>F=1</value>
+					</cookie>
+					<cookie>
+						<name>ocid</name>
+						<value>iehp</value>
+					</cookie>
+					<cookie>
+						<name>Sample</name>
+						<value>96</value>
+					</cookie>
+					<cookie>
+						<name>MUID</name>
+						<value>08CBD2700E636DB11D92DA380FF36C45</value>
+					</cookie>
+					<cookie>
+						<name>MC1</name>
+						<value>V=3&amp;GUID=38069f76eb9747bea457a30717af35cb</value>
+					</cookie>
+					<cookie>
+						<name>PreferencesMsn</name>
+						<value>eyJIb21lUGFnZSI6eyJTdHJpcGVzIjpbXSwiTWVTdHJpcGVNb2R1bGVzIjpbXSwiTWFya2V0Q29uZmlndXJhdGlvbiI6eyJNYXJrZXQiOiJlbi11cyIsIlN1cHByZXNzUHJvbXB0IjpmYWxzZSwiUHJlZmVycmVkTGFuZ3VhZ2VDb2RlIjoiZW4tdXMiLCJDb3VudHJ5Q29kZSI6IlVTIn19LCJFeHBpcnlUaW1lIjo2MzYxMjc1ODQ2Mzk5ODc1NjcsIlZlcnNpb24iOjF90</value>
+					</cookie>
+					<cookie>
+						<name>marketPref</name>
+						<value>en-us</value>
+					</cookie>
+					<cookie>
+						<name>_EDGE_V</name>
+						<value>1</value>
+					</cookie>
+					<cookie>
+						<name>ipt</name>
+						<value>{"v":{"L":2},"pt":{"d":2},"ct":{},"_t":41,"_v":"2"}</value>
+					</cookie>
+					<cookie>
+						<name>_SS</name>
+						<value>SID=00</value>
+					</cookie>
+					<cookie>
+						<name>grvinsights</name>
+						<value>38eadd50f8ba505f26b8ccd8abb585db</value>
+					</cookie>
+				</cookies>
+				<headers>
+					<header>
+						<name>Accept</name>
+						<value>image/png, image/svg+xml, image/*;q=0.8, */*;q=0.5</value>
+					</header>
+					<header>
+						<name>Referer</name>
+						<value>http://www.msn.com/?ocid=iehp</value>
+					</header>
+					<header>
+						<name>Accept-Language</name>
+						<value>en-US</value>
+					</header>
+					<header>
+						<name>User-Agent</name>
+						<value>Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko</value>
+					</header>
+					<header>
+						<name>Accept-Encoding</name>
+						<value>gzip, deflate</value>
+					</header>
+					<header>
+						<name>Host</name>
+						<value>otf.msn.com</value>
+					</header>
+					<header>
+						<name>Connection</name>
+						<value>Keep-Alive</value>
+					</header>
+					<header>
+						<name>Cache-Control</name>
+						<value>no-cache</value>
+					</header>
+					<header>
+						<name>Cookie</name>
+						<value>_EDGE_S=F=1; ocid=iehp; Sample=96; MUID=08CBD2700E636DB11D92DA380FF36C45; MC1=V=3&amp;GUID=38069f76eb9747bea457a30717af35cb; PreferencesMsn=eyJIb21lUGFnZSI6eyJTdHJpcGVzIjpbXSwiTWVTdHJpcGVNb2R1bGVzIjpbXSwiTWFya2V0Q29uZmlndXJhdGlvbiI6eyJNYXJrZXQiOiJlbi11cyIsIlN1cHByZXNzUHJvbXB0IjpmYWxzZSwiUHJlZmVycmVkTGFuZ3VhZ2VDb2RlIjoiZW4tdXMiLCJDb3VudHJ5Q29kZSI6IlVTIn19LCJFeHBpcnlUaW1lIjo2MzYxMjc1ODQ2Mzk5ODc1NjcsIlZlcnNpb24iOjF90; marketPref=en-us; _EDGE_V=1; ipt={"v":{"L":2},"pt":{"d":2},"ct":{},"_t":41,"_v":"2"}; _SS=SID=00; grvinsights=38eadd50f8ba505f26b8ccd8abb585db</value>
+					</header>
+				</headers>
+				<queryString>
+					<param>
+						<name>rid</name>
+						<value>e97d91f49d4d442b8a5e7dd5b6432f04</value>
+					</param>
+					<param>
+						<name>cts</name>
+						<value>1445539458184</value>
+					</param>
+					<param>
+						<name>clid</name>
+						<value>08CBD2700E636DB11D92DA380FF36C45</value>
+					</param>
+					<param>
+						<name>di</name>
+						<value>340</value>
+					</param>
+					<param>
+						<name>mkt</name>
+						<value>en-us</value>
+					</param>
+					<param>
+						<name>pn</name>
+						<value>startpage</value>
+					</param>
+					<param>
+						<name>su</name>
+						<value>http%253A%252F%252Fwww.msn.com%252F%253Focid%253Diehp</value>
+					</param>
+					<param>
+						<name>pid</name>
+						<value>startpage</value>
+					</param>
+					<param>
+						<name>mv</name>
+						<value>15</value>
+					</param>
+					<param>
+						<name>cv.product</name>
+						<value>prime</value>
+					</param>
+					<param>
+						<name>flightid</name>
+						<value>muidflt3cf%2Cd-thshldie1%2Cd-thshldie2</value>
+					</param>
+					<param>
+						<name>exa</name>
+						<value>muidflt3cf%2Cd-thshldie1%2Cd-thshldie2</value>
+					</param>
+					<param>
+						<name>activityId</name>
+						<value>e97d91f49d4d442b8a5e7dd5b6432f04</value>
+					</param>
+					<param>
+						<name>cvs</name>
+						<value>Browser</value>
+					</param>
+					<param>
+						<name>subcvs</name>
+						<value>homepage</value>
+					</param>
+					<param>
+						<name>evt</name>
+						<value>unload</value>
+					</param>
+				</queryString>
+				<headersSize>1287</headersSize>
+				<bodySize>0</bodySize>
+			</request>
+			<response>
+				<status>200</status>
+				<statusText>OK</statusText>
+				<httpVersion>HTTP/1.1</httpVersion>
+				<cookies/>
+				<headers>
+					<header>
+						<name>Cache-Control</name>
+						<value>no-cache, no-store, must-revalidate</value>
+					</header>
+					<header>
+						<name>Pragma</name>
+						<value>no-cache</value>
+					</header>
+					<header>
+						<name>Content-Type</name>
+						<value>image/gif</value>
+					</header>
+					<header>
+						<name>Expires</name>
+						<value>-1</value>
+					</header>
+					<header>
+						<name>Last-Modified</name>
+						<value>Fri, 03 Jan 2014 00:06:46 GMT</value>
+					</header>
+					<header>
+						<name>Accept-Ranges</name>
+						<value>bytes</value>
+					</header>
+					<header>
+						<name>ETag</name>
+						<value>"d5725b1178cf1:0"</value>
+					</header>
+					<header>
+						<name>Server</name>
+						<value>Microsoft-IIS/8.5</value>
+					</header>
+					<header>
+						<name>S</name>
+						<value>CH1AMPA08751</value>
+					</header>
+					<header>
+						<name>Access-Control-Allow-Origin</name>
+						<value>*</value>
+					</header>
+					<header>
+						<name>Access-Control-Allow-Headers</name>
+						<value>Content-Type</value>
+					</header>
+					<header>
+						<name>Access-Control-Allow-Methods</name>
+						<value>POST, GET, OPTIONS, HEAD</value>
+					</header>
+					<header>
+						<name>Access-Control-Max-Age</name>
+						<value>21600</value>
+					</header>
+					<header>
+						<name>Date</name>
+						<value>Thu, 22 Oct 2015 18:44:18 GMT</value>
+					</header>
+					<header>
+						<name>Content-Length</name>
+						<value>42</value>
+					</header>
+				</headers>
+				<content>
+					<size>42</size>
+					<mimeType>image/gif</mimeType>
+				</content>
+				<redirectionURL/>
+				<headersSize>484</headersSize>
+				<bodySize>42</bodySize>
+			</response>
+			<cache/>
+			<timings>
+				<send>0</send>
+				<wait>93</wait>
+				<receive>0</receive>
+			</timings>
+		</entry>
+	</entries>
+</log>

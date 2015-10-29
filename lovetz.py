@@ -454,11 +454,10 @@ class HARReader(LovetzReader):
     def iteritem(self):
         for entry in self.json_doc['log']['entries']:
             url = entry['request']['url']
-            if entry['request']['bodySize'] == 0:
+            if entry['request']['bodySize'] <= 0:
                 req_body = ''
             else:
                 req_body = entry['request']['body']
-
 
 
 class BurpProxyReader(LovetzReader):
@@ -487,8 +486,10 @@ class BurpProxyReader(LovetzReader):
         return (status, headers, body)
 
     def iteritem(self):
+
         if self.tree is None:
             raise Exception("no file has been previously loaded")
+
         for item in self.tree.iterfind('./item'):
             url, response, request = "", "", ""
             for c in item.getchildren():
@@ -526,12 +527,83 @@ class IEReader(LovetzReader):
 
     def load(self, filename=None):
         if filename is not None:
-            self.filename = filename
+            try:
+                self.filename = filename
+                self.tree = parse(self.filename)
+            except:
+                self.tree = None
+                self.filename = None
+        else:
+            self.filename = None
+            self.tree = None
 
-        pass
+    def _headers(self, headers_elements):
+
+        res = HeaderDict()
+
+        if headers_element is None:
+            return res
+
+        for header in headers_element.iterfind("./header"):
+            name = header.find("./name").text
+            value = header.find("./value").text
+            res[name] = value
+
+        return res
+
+    def _request(self, req_element):
+
+        # anaphoric if would be nice here, at least
+        # for null checks. Code is kinda yucky, tbqh.
+
+        method = req_element.find("./method").text
+        url = req-lement.find("./url").text
+        ver = req_element.find("./httpVersion").text
+
+        status = "{0} {1} {2}".format(method, url, ver)
+
+        headers = self._headers(req_element.find("./headers"))
+
+        body_size = req_element.find("./bodySize").text
+
+        body_content = None
+
+        if int(body_size) != 0:
+            body_content = req_element.find("./content/text").text
+        else:
+            body_content = ""
+
+        return (url, status, headers, body_content)
+
+    def _response(self, res_element):
+
+        numstat = res_element.find("./status").text
+        message = res_element.find("./statusText").text
+        ver = res_element.find("./httpVersion").text
+
+        status = "{0} {1} {2}".format(numstat, message, ver)
+
+        headers = self._headers(res_element.find("./headers"))
+
+        body_size = res_element.find("./bodySize").text
+
+        body_content = None
+
+        if int(body_size) != 0:
+            body_content = req_element.find("./content/text").text
+        else:
+            body_content = ""
+
+        return (status, headers, body_content)
 
     def iteritem(self):
-        pass
+
+        if self.tree is None:
+            raise Exception("no file has been previously loaded")
+
+        for item in self.tree.iterfind("./entry"):
+            req = self._request(item.find("./request"))
+            res = self._response(item.find("./response"))
 
 
 if __name__ == "__main__":
