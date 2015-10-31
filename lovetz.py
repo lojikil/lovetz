@@ -590,7 +590,14 @@ class IEReader(LovetzReader):
         body_content = None
 
         if int(body_size) != 0:
-            body_content = res_element.find("./content/text").text
+            body = res_element.find("./content/text")
+
+            if body:
+                body_content = res_element.find("./content/text").text
+            else:
+                # this must mean there's some other type of node...
+                # TODO: check this out
+                body_content = ""
         else:
             body_content = ""
 
