@@ -237,6 +237,37 @@ class CookiePlugin(LovetzPlugin):
                                            for cf in cookies_fine])))
 
 
+class FingerprintPlugin(LovetzPlugin):
+    """ Attempt to fingerprint an application based on:
+
+        - URL: does it contain "wp-", ".do", &c.?
+        - Headers: any "X-Powered-By"?
+        - bodies: any tell-tale information therein?
+    """
+
+    def check(self, url, response_headers, request_headers,
+              response_body, request_body, response_status, request_status):
+        pass
+
+
+class IDsInURLPlugin(LovetzPlugin):
+    """ Attempt to uncover sensitive data such as session IDs in URLs.
+    """
+
+    def check(self, url, response_headers, request_headers,
+              response_body, request_body, response_status, request_status):
+        pass
+
+
+class AutocompletePlugin(LovetzPlugin):
+    """ Autocomplete in HTML warning.
+    """
+
+    def check(self, url, response_headers, request_headers,
+              response_body, request_body, response_status, request_status):
+        pass
+
+
 class HeaderPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
