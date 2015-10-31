@@ -537,7 +537,7 @@ class IEReader(LovetzReader):
             self.filename = None
             self.tree = None
 
-    def _headers(self, headers_elements):
+    def _headers(self, headers_element):
 
         res = HeaderDict()
 
@@ -557,7 +557,7 @@ class IEReader(LovetzReader):
         # for null checks. Code is kinda yucky, tbqh.
 
         method = req_element.find("./method").text
-        url = req-lement.find("./url").text
+        url = req_element.find("./url").text
         ver = req_element.find("./httpVersion").text
 
         status = "{0} {1} {2}".format(method, url, ver)
@@ -590,7 +590,7 @@ class IEReader(LovetzReader):
         body_content = None
 
         if int(body_size) != 0:
-            body_content = req_element.find("./content/text").text
+            body_content = res_element.find("./content/text").text
         else:
             body_content = ""
 
@@ -601,24 +601,46 @@ class IEReader(LovetzReader):
         if self.tree is None:
             raise Exception("no file has been previously loaded")
 
-        for item in self.tree.iterfind("./entry"):
+
+        for item in self.tree.iterfind("./entries/entry"):
             req = self._request(item.find("./request"))
             res = self._response(item.find("./response"))
+
+            # named tuple might be nicer here, just for legibility...
+            yield LovetzHistoryItem(req[0], req[1], req[2], req[3],
+                                    res[0], res[1], res[2])
 
 
 if __name__ == "__main__":
 
-    if sys.argv == 1:
+    if sys.argv < 4:
         print "usage: lovetz.py [options] <file>"
         sys.exit(0)
 
-    # for now, just spin up all plugins and run them
-    # against the Burp reader.
+    argp = argparse.ArgumentParser(description="Lovetz, a passive history scanner")
 
-    br = BurpProxyReader()
-    br.load(sys.argv[1])
+    argp.add_argument('-T', dest='filetype', type=str)
+    argp.add_argument('-F', dest='filename', type=str)
+
+    args = argp.parse_args()
+
+    reader = None
+
+    if args.filetype == "burp":
+        reader = BurpProxyReader()
+    elif args.filetype == "ie":
+        reader = IEReader()
+    else:
+        print "filetype must be one of: burp, ie, har"
+        sys.exit(1)
+
+    if args.filename == "":
+        print "filename must be specified"
+        sys.exit(2)
+
+    reader.load(args.filename)
     plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin()]
 
-    for item in br.iteritem():
+    for item in reader.iteritem():
         for plugin in plugins:
             plugin.check(**item)
