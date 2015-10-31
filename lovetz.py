@@ -244,6 +244,9 @@ class HeaderPlugin(LovetzPlugin):
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
 
+        if not hasattr(self, "server_re"):
+            self.server_re = re.compile('[0-9]')
+
         if "cache-control" in response_headers:
             if "must-revalidate" not in response_headers["cache-control"]:
                 msg = "Weak 'cache-control' value: {0}"
@@ -341,10 +344,17 @@ class HeaderPlugin(LovetzPlugin):
 
         if "server" in response_headers:
             val = response_headers["server"]
-            msg = "server value found: \"{0}\""
-            self.log(LOG_WARN,
-                     url,
-                     msg.format(response_headers['server']))
+            imsg = "server value found: \"{0}\""
+            wmsg = "server with specific version found: \"{0}\""
+
+            if self.server_re.search(val):
+                self.log(LOG_WARN,
+                         url,
+                         wmsg.format(val))
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         imsg.format(val))
 
 
 class JSDumpingPlugin(LovetzPlugin):
@@ -592,11 +602,13 @@ class IEReader(LovetzReader):
         if int(body_size) != 0:
             body = res_element.find("./content/text")
 
-            if body:
+            if body is not None:
                 body_content = res_element.find("./content/text").text
             else:
                 # this must mean there's some other type of node...
                 # TODO: check this out
+                # ah, seems to be regarding Binary content... look into
+                # this further
                 body_content = ""
         else:
             body_content = ""
