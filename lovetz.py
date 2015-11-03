@@ -247,7 +247,49 @@ class FingerprintPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        pass
+
+        if not hasattr(self, 'replugins'):
+            # compile a big mess of regular expressions that we
+            # can use later for checking URLs. The checks themselves
+            # are actually a tuple of re-object, location-string
+            # The location string has the following values:
+            # - both: check the body & the URL
+            # - body: check *only* the (response) body
+            # - header: check the X-Powered-By header
+            # - url: check *only* the URL
+            # note that "both" does NOT imply checking the header;
+            # maybe we should add an "all" directive?
+
+            self.replugins = {
+                'Wordpress': (re.compile('/wp-',re.I), "both"),
+                'WordPress powered by': (re.compile('Powered By WordPress',
+                                                    re.I), 'body'),
+                'phpMyAdmim': (re.compile('/phpMyAdmin', re.I), "both"),
+                'php': (re.compile('\.php', re.I), "url"),
+                'Struts 1': (re.compile('\.do', re.I), "url"),
+                'Struts 2': (re.compile('\.action', re.I), "url"),
+                'ASP': (re.compile('\.asp$', re.I), "url"),
+                'ASP.Net': (re.compile('\.aspx$', re.I), "url"),
+                'ASP.Net Header': (re.compile('ASP\.NET', re.I), "header"),
+                'Outlook Web Access': (re.compile('/owa/', re.I), 'url'),
+                'Exchange': (re.compile('/exchweb', re.I), 'url'),
+                'CGI': (re.compile('/cgi-?(bin)?', re.I), 'url'),
+                'ColdFusion': (re.compile('\.(cfm|cfc)', re.I), 'url')
+            }
+
+        for fpname, fptuple in self.fingerprints:
+
+            fingerprint, location = fptuple
+
+            if location == "body":
+                if fingerprint.search(response_body) is not None:
+                    self.log(LOG_WARN, url, msg.format(fpname))
+            elif location == "header":
+                pass
+            elif location == "url":
+                pass
+            elif location == "both":
+                pass
 
 
 class IDsInURLPlugin(LovetzPlugin):
