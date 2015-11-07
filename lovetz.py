@@ -532,13 +532,46 @@ class HARReader(LovetzReader):
             self.filename = None
             self.json_doc = None
 
+    def _headers(self, headers):
+        res = HeaderDict()
+
+        if headers is None:
+            return res
+
+        for item in headers:
+            res[item['name']] = item['value']
+
+        return res
+
+    def _request(self, req):
+        url = req['url']
+        method = req['method']
+        version = req['httpVersion']
+        req_stat = "{0} {1} {2}".format(method, url, version)
+
+        if req['bodySize'] <= 0:
+            req_body = ''
+        else:
+            req_body = req['body']
+
+        req_headers = self._headers(req['headers'])
+
+        return (url, req_stat, req_headers, req_body)
+
+    def _response(self, res):
+        pass
+
     def iteritem(self):
+
         for entry in self.json_doc['log']['entries']:
-            url = entry['request']['url']
-            if entry['request']['bodySize'] <= 0:
-                req_body = ''
-            else:
-                req_body = entry['request']['body']
+            req = self._request(entry['request'])
+            res = self._response(entry['response'])
+
+            yield LovetzHistoryItem(req[0], req[1], req[2], req[3],
+                                    res[0], res[1], res[2])
+
+
+
 
 
 class BurpProxyReader(LovetzReader):
@@ -726,6 +759,8 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
         reader = BurpProxyReader()
     elif args.filetype == "ie":
         reader = IEReader()
+    elif args.filetype == "har":
+        reader = HARReader()
     else:
         print "filetype must be one of: burp, ie, har"
         sys.exit(1)
