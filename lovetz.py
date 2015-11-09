@@ -559,7 +559,12 @@ class HARReader(LovetzReader):
         return (url, req_stat, req_headers, req_body)
 
     def _response(self, res):
-        pass
+        scode = res['status']
+        stext = res['statusText']
+        ver = res['httpVersion']
+
+        res_headers = self._headers(res['headers'])
+
 
     def iteritem(self):
 
