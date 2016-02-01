@@ -233,7 +233,7 @@ class CookiePlugin(LovetzPlugin):
             msg = "Cookies with the correct flags: {0}"
             self.log(LOG_INFO,
                      url,
-                     msg.format(', '.join([cf.name
+                     msg.format(', '.join([cf
                                            for cf in cookies_fine])))
 
 
