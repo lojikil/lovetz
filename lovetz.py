@@ -3,6 +3,8 @@ import json
 import re
 import argparse
 import sys
+import urlparse
+import os.path
 
 
 LOG_ERROR = 2
@@ -212,21 +214,21 @@ class CookiePlugin(LovetzPlugin):
             msg = "Cookies missing 'http only': {0}"
             self.log(LOG_WARN,
                      url,
-                     msg.format(', '.join([ct.name
+                     msg.format(', '.join([ct
                                            for ct in cookies_httponly])))
 
         if cookies_secure:
             msg = "Cookies missing 'secure': {0}"
             self.log(LOG_WARN,
                      url,
-                     msg.format(', '.join([cs.name
+                     msg.format(', '.join([cs
                                            for cs in cookies_secure])))
 
         if cookies_both:
             msg = "Cookies missing both 'secure' and 'http only': {0}"
             self.log(LOG_WARN,
                      url,
-                     msg.format(', '.join([cb.name
+                     msg.format(', '.join([cb
                                            for cb in cookies_both])))
 
         if cookies_fine:
@@ -435,7 +437,26 @@ class JSDumpingPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        pass
+        parsed_url = urlparse.urlsplit(url)
+        if parsed_url.path.endswith(".js"):
+            fname = urlparse.urlsplit(url).path.split('/')[-1]
+
+            # XXX: this is pretty awful
+            # I have to split the response status line here, to check
+            # those few times that we actually have a 200, instead of
+            # a 304 (which would mean it's a cache hit). There's probably
+            # some more intelligent things we can do here, like check the
+            # size of the JS on disk vs the size we see in the response,
+            # but having a parsed status line is key.
+
+            vals = response_status.split(" ")
+
+            if vals[1] == "200" and not os.path.isfile(fname):
+                self.log(LOG_INFO,
+                         url,
+                         "Dumped JavaScript body")
+                with open(fname, 'w') as fh:
+                    fh.write(response_body)
 
 
 class LovetzHistoryItem(object):
@@ -775,7 +796,8 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
         sys.exit(2)
 
     reader.load(args.filename)
-    plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin()]
+    plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin(),
+               JSDumpingPlugin()]
 
     for item in reader.iteritem():
         for plugin in plugins:
