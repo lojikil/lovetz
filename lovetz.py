@@ -263,7 +263,7 @@ class FingerprintPlugin(LovetzPlugin):
             # maybe we should add an "all" directive?
 
             self.replugins = {
-                'Wordpress': (re.compile('/wp-',re.I), "both"),
+                'Wordpress': (re.compile('/wp-', re.I), "both"),
                 'WordPress powered by': (re.compile('Powered By WordPress',
                                                     re.I), 'body'),
                 'phpMyAdmim': (re.compile('/phpMyAdmin', re.I), "both"),
@@ -285,7 +285,8 @@ class FingerprintPlugin(LovetzPlugin):
 
             if location == "body":
                 if fingerprint.search(response_body) is not None:
-                    self.log(LOG_WARN, url, msg.format(fpname))
+                    pass
+                    # self.log(LOG_WARN, url, msg.format(fpname))
             elif location == "header":
                 pass
             elif location == "url":
@@ -586,7 +587,6 @@ class HARReader(LovetzReader):
 
         res_headers = self._headers(res['headers'])
 
-
     def iteritem(self):
 
         for entry in self.json_doc['log']['entries']:
@@ -595,9 +595,6 @@ class HARReader(LovetzReader):
 
             yield LovetzHistoryItem(req[0], req[1], req[2], req[3],
                                     res[0], res[1], res[2])
-
-
-
 
 
 class BurpProxyReader(LovetzReader):
