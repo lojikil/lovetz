@@ -11,6 +11,16 @@ LOG_ERROR = 2
 LOG_WARN = 1
 LOG_INFO = 0
 
+# these are defined this way so that
+# they cannot be confused with
+# the above. Honestly I should make
+# them into a separate type & what not
+# but Python isn't really geared for that
+
+LOG_RAW = "raw"
+LOG_JSON = "json"
+LOG_CSV = "csv"
+
 
 class HeaderDict(object):
 
@@ -50,26 +60,34 @@ class HeaderDict(object):
 
 class LovetzPlugin(object):
 
-    def __init__(self):
+    def __init__(self, style=LOG_RAW, verbose=True):
         # no longer need to have the DOM checks here; moved them to the
         # reader, which I believe is a cleaner location.
-
-        pass
+        self.events = []
+        self.style = style
+        self.verbose = verbose
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, request_status, response_status):
         raise NotImplemented("base lovetz plugin class")
 
-    def log(self, event, url, message, request_heders=None,
+    def log(self, event, url, message, request_headers=None,
             response_headers=None, response=None, request=None):
 
         # really, this should be just access a class-level member that
         # handles the actual output... but for now this is enough.
 
         outputs = ["[-]", "[!]", "[+]"]
-        print "{0} {1} for {2}".format(outputs[event],
-                                       message,
-                                       url)
+
+        self.events.append(dict(event=event, url=url, message=message,
+                                request_headers=request_headers,
+                                response_headers=response_headers,
+                                request=request,
+                                response=response))
+        if self.verbose:
+            print "{0} {1} for {2}".format(outputs[event],
+                                           message,
+                                           url)
 
 
 class CORSPlugin(LovetzPlugin):
@@ -574,7 +592,11 @@ class HARReader(LovetzReader):
         if req['bodySize'] <= 0:
             req_body = ''
         else:
-            req_body = req['body']
+            if req['postData']:
+                req_body = req['postData']['text']
+            else:
+                req_body = req['body']
+            print req_body
 
         req_headers = self._headers(req['headers'])
 
@@ -586,6 +608,15 @@ class HARReader(LovetzReader):
         ver = res['httpVersion']
 
         res_headers = self._headers(res['headers'])
+
+        res_stat = "{0} {1} {2}".format(ver, scode, stext)
+
+        if res['bodySize'] <= 0:
+            res_body = ''
+        else:
+            res_body = res['content']['text']
+
+        return (res_stat, res_headers, res_body)
 
     def iteritem(self):
 
