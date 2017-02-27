@@ -1,5 +1,6 @@
 from xml.etree.ElementTree import parse
 import json
+import csv
 import re
 import argparse
 import sys
@@ -596,7 +597,6 @@ class HARReader(LovetzReader):
                 req_body = req['postData']['text']
             else:
                 req_body = req['body']
-            print req_body
 
         req_headers = self._headers(req['headers'])
 
@@ -787,6 +787,34 @@ class IEReader(LovetzReader):
                                     res[0], res[1], res[2])
 
 
+def dump_logs(events, style=LOG_RAW, location=None):
+
+    fields = ["event", "url", "message", "request_headers",
+              "response_headers", "request", "response"]
+    outputs = ["[-]", "[!]", "[+]"]
+
+    if style is LOG_RAW:
+
+        for event in events:
+            line = "{0} {1} for {2}".format(outputs[event.event],
+                                            event.message,
+                                            event.url)
+            if location is None:
+                print line
+            else:
+                location.write(line + "\n")
+    elif style is LOG_CSV:
+        writer = csv.DictWriter(location, fieldnames=fields)
+        for event in events:
+            writer.writerow(event)
+    elif style is LOG_JSON:
+        output = json.dumps({'events': events})
+        if location is None:
+            print output
+        else:
+            location.write(output)
+
+
 if __name__ == "__main__":
 
     if sys.argv < 4:
@@ -804,6 +832,8 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
 
     argp.add_argument('-T', dest='filetype', type=str)
     argp.add_argument('-F', dest='filename', type=str)
+    argp.add_argument('-o', dest='outputtype', type=str)
+    argp.add_argument('-O', dest='outputlocation', type=str)
 
     args = argp.parse_args()
 
