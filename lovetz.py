@@ -1,5 +1,6 @@
 from xml.etree.ElementTree import parse
 import json
+import csv
 import re
 import argparse
 import sys
@@ -10,6 +11,16 @@ import os.path
 LOG_ERROR = 2
 LOG_WARN = 1
 LOG_INFO = 0
+
+# these are defined this way so that
+# they cannot be confused with
+# the above. Honestly I should make
+# them into a separate type & what not
+# but Python isn't really geared for that
+
+LOG_RAW = "raw"
+LOG_JSON = "json"
+LOG_CSV = "csv"
 
 
 class HeaderDict(object):
@@ -50,26 +61,34 @@ class HeaderDict(object):
 
 class LovetzPlugin(object):
 
-    def __init__(self):
+    def __init__(self, style=LOG_RAW, verbose=True):
         # no longer need to have the DOM checks here; moved them to the
         # reader, which I believe is a cleaner location.
-
-        pass
+        self.events = []
+        self.style = style
+        self.verbose = verbose
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, request_status, response_status):
         raise NotImplemented("base lovetz plugin class")
 
-    def log(self, event, url, message, request_heders=None,
+    def log(self, event, url, message, request_headers=None,
             response_headers=None, response=None, request=None):
 
         # really, this should be just access a class-level member that
         # handles the actual output... but for now this is enough.
 
         outputs = ["[-]", "[!]", "[+]"]
-        print "{0} {1} for {2}".format(outputs[event],
-                                       message,
-                                       url)
+
+        self.events.append(dict(event=event, url=url, message=message,
+                                request_headers=request_headers,
+                                response_headers=response_headers,
+                                request=request,
+                                response=response))
+        if self.verbose:
+            print "{0} {1} for {2}".format(outputs[event],
+                                           message,
+                                           url)
 
 
 class CORSPlugin(LovetzPlugin):
@@ -275,7 +294,7 @@ class FingerprintPlugin(LovetzPlugin):
             # maybe we should add an "all" directive?
 
             self.replugins = {
-                'Wordpress': (re.compile('/wp-',re.I), "both"),
+                'Wordpress': (re.compile('/wp-', re.I), "both"),
                 'WordPress powered by': (re.compile('Powered By WordPress',
                                                     re.I), 'body'),
                 'phpMyAdmim': (re.compile('/phpMyAdmin', re.I), "both"),
@@ -297,7 +316,8 @@ class FingerprintPlugin(LovetzPlugin):
 
             if location == "body":
                 if fingerprint.search(response_body) is not None:
-                    self.log(LOG_WARN, url, msg.format(fpname))
+                    pass
+                    # self.log(LOG_WARN, url, msg.format(fpname))
             elif location == "header":
                 pass
             elif location == "url":
@@ -585,7 +605,10 @@ class HARReader(LovetzReader):
         if req['bodySize'] <= 0:
             req_body = ''
         else:
-            req_body = req['body']
+            if req['postData']:
+                req_body = req['postData']['text']
+            else:
+                req_body = req['body']
 
         req_headers = self._headers(req['headers'])
 
@@ -598,6 +621,14 @@ class HARReader(LovetzReader):
 
         res_headers = self._headers(res['headers'])
 
+        res_stat = "{0} {1} {2}".format(ver, scode, stext)
+
+        if res['bodySize'] <= 0:
+            res_body = ''
+        else:
+            res_body = res['content']['text']
+
+        return (res_stat, res_headers, res_body)
 
     def iteritem(self):
 
@@ -607,9 +638,6 @@ class HARReader(LovetzReader):
 
             yield LovetzHistoryItem(req[0], req[1], req[2], req[3],
                                     res[0], res[1], res[2])
-
-
-
 
 
 class BurpProxyReader(LovetzReader):
@@ -771,6 +799,34 @@ class IEReader(LovetzReader):
                                     res[0], res[1], res[2])
 
 
+def dump_logs(events, style=LOG_RAW, location=None):
+
+    fields = ["event", "url", "message", "request_headers",
+              "response_headers", "request", "response"]
+    outputs = ["[-]", "[!]", "[+]"]
+
+    if style is LOG_RAW:
+
+        for event in events:
+            line = "{0} {1} for {2}".format(outputs[event.event],
+                                            event.message,
+                                            event.url)
+            if location is None:
+                print line
+            else:
+                location.write(line + "\n")
+    elif style is LOG_CSV:
+        writer = csv.DictWriter(location, fieldnames=fields)
+        for event in events:
+            writer.writerow(event)
+    elif style is LOG_JSON:
+        output = json.dumps({'events': events})
+        if location is None:
+            print output
+        else:
+            location.write(output)
+
+
 if __name__ == "__main__":
 
     if sys.argv < 4:
@@ -788,6 +844,8 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
 
     argp.add_argument('-T', dest='filetype', type=str)
     argp.add_argument('-F', dest='filename', type=str)
+    argp.add_argument('-o', dest='outputtype', type=str)
+    argp.add_argument('-O', dest='outputlocation', type=str)
 
     args = argp.parse_args()
 
