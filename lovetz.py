@@ -168,6 +168,18 @@ class LovetzCookie(object):
         return cookies
 
 
+class ETagPlugin(LovetzPlugin):
+
+    def check(self, url, response_headers, request_headers,
+              response_body, request_body, response_status, request_status):
+
+        if "etag" in response_headers:
+            val = response_headers["etag"]
+            self.log(LOG_WARN,
+                     url,
+                     "ETag in response: {0}".format(val))
+
+
 class CookiePlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
@@ -797,7 +809,7 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
 
     reader.load(args.filename)
     plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin(),
-               JSDumpingPlugin()]
+               JSDumpingPlugin(), ETagPlugin()]
 
     for item in reader.iteritem():
         for plugin in plugins:
