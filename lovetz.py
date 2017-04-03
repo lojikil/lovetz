@@ -150,7 +150,14 @@ class LovetzCookie(object):
             val = val[12:]
 
         vals = val.split(";")
-        n, v = vals[0].strip().split("=")
+        tmp = vals[0].strip().split("=")
+        if len(tmp) == 2:
+            n = tmp[0]
+            v = tmp[1]
+        else:
+            n = tmp
+            v = ""
+
         vals = vals[1:]
         h = {
             'name': n,
