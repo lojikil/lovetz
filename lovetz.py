@@ -80,15 +80,19 @@ class LovetzPlugin(object):
 
         outputs = ["[-]", "[!]", "[+]"]
 
-        self.events.append(dict(event=event, url=url, message=message,
+        self.events.append(dict(source=self.__class__.__name__,
+                                event=event,
+                                url=url,
+                                message=message,
                                 request_headers=request_headers,
                                 response_headers=response_headers,
                                 request=request,
                                 response=response))
         if self.verbose:
-            print "{0} {1} for {2}".format(outputs[event],
-                                           message,
-                                           url)
+            print "{0} ({1}) {2} for {3}".format(outputs[event],
+                                               self.__class__.__name__,
+                                               message,
+                                               url)
 
 
 class CORSPlugin(LovetzPlugin):
@@ -109,6 +113,17 @@ class CORSPlugin(LovetzPlugin):
                 self.log(LOG_WARN,
                          url,
                          "Widely-scoped access-control-allow-origin header")
+                if "access-control-allow-credentials" in response_headers:
+                    self.log(LOG_WARN,
+                             url,
+                             "Wildcard ACAO with credentials allowed")
+                if ("access-control-expose-headers" in response_headers and \
+                    "authorization" in response_headers["access-control-expose-headers"]) or \
+                   ("access-control-allow-headers" in response_headers and \
+                    "authorization" in response_headers["access-control-allow-headers"]):
+                    self.log(LOG_WARN,
+                             url,
+                             "Wildcard ACAO with authorization allowed")
             else:
                 self.log(LOG_INFO,
                          url,
