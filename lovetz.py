@@ -413,6 +413,17 @@ class HeaderPlugin(LovetzPlugin):
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
 
+        security_headers = ["cache-control", "pragma", "x-xss-protection",
+                            "x-content-type-options", "expires", "x-frame-options",
+                            "strict-transport-security", "x-powered-by", "server"]
+
+        msg = "Response header {0} with value {1}"
+        for header in response_headers.keys():
+            if header not in security_headers:
+                self.log(LOG_INFO,
+                         url,
+                         msg.format(header, response_headers[header]))
+
         if not hasattr(self, "server_re"):
             self.server_re = re.compile('[0-9]')
 
@@ -422,6 +433,10 @@ class HeaderPlugin(LovetzPlugin):
                 self.log(LOG_WARN,
                          url,
                          msg.format(response_headers["cache-control"]))
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         "Cache-control header found: {0}".format(response_headers["cache-control"]))
         else:
             self.log(LOG_WARN,
                      url,
@@ -502,6 +517,15 @@ class HeaderPlugin(LovetzPlugin):
             self.log(LOG_WARN,
                      url,
                      "x-frame-options header not defined")
+
+        if "strict-transport-security" in response_headers:
+            self.log(LOG_INFO,
+                     url,
+                     "HSTS found with value: {0}".format(response_headers["strict-transport-security"]))
+        else:
+            self.log(LOG_WARN,
+                     url,
+                     "HSTS missing")
 
         # could probably do some app finger printing here...
 
