@@ -415,7 +415,8 @@ class HeaderPlugin(LovetzPlugin):
 
         security_headers = ["cache-control", "pragma", "x-xss-protection",
                             "x-content-type-options", "expires", "x-frame-options",
-                            "strict-transport-security", "x-powered-by", "server"]
+                            "strict-transport-security", "x-powered-by", "server",
+                            "www-authenticate"]
 
         msg = "Response header {0} with value {1}"
         for header in response_headers.keys():
@@ -426,6 +427,16 @@ class HeaderPlugin(LovetzPlugin):
 
         if not hasattr(self, "server_re"):
             self.server_re = re.compile('[0-9]')
+
+        if "www-authenticate" in response_headers:
+            if "Basic realm" in response_headers["www-authenticate"]:
+                self.log(LOG_WARN,
+                         url,
+                         "(www-auth) URL supports Basic authentication: {0}".format(response_headers["www-authenticate"]))
+            else:
+                self.log(LOG_INFO,
+                         url,
+                         "(www-auth) URL Authentication: {0}".format(response_headers["www-authenticate"]))
 
         if "cache-control" in response_headers:
             if "must-revalidate" not in response_headers["cache-control"]:
