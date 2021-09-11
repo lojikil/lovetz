@@ -127,10 +127,12 @@ class LovetzCookie(object):
 
     """
     __slots__ = ['httponly', 'secure', 'comment', 'path', 'name',
-                 'value', 'expires', 'other', 'domain', 'version']
+                 'value', 'expires', 'other', 'domain', 'version',
+                 'samesite']
 
     def __init__(self, name, value, httponly=False, secure=False,
-                 comment=None, path=None, expires=None, domain=None, **other):
+                 comment=None, path=None, expires=None, domain=None,
+                 samesite=None, **other):
         self.name = name
         self.value = value
         self.httponly = httponly
@@ -140,6 +142,7 @@ class LovetzCookie(object):
         self.path = path
         self.expires = expires
         self.other = other
+        self.samesite = samesite
 
     @staticmethod
     def parse_response(val):
@@ -165,6 +168,7 @@ class LovetzCookie(object):
         }
         for v in vals:
             parts = v.strip().split("=")
+            parts[0] = parts[0].lower()
 
             if len(parts) == 1:
                 if parts[0].lower() == "httponly":
@@ -218,6 +222,9 @@ class CookiePlugin(LovetzPlugin):
         cookies_secure = []    # missing secure
         cookies_both = []     # missing both
         cookies_fine = []     # having all flags
+        cookies_samesite_none = []
+        cookies_samesite_lax = []
+        cookies_missing_samesite = []
 
         if "set-cookie" in response_headers:
             tmp = response_headers['set-cookie']
@@ -235,6 +242,13 @@ class CookiePlugin(LovetzPlugin):
                         cookies_secure.append(cookie)
                     else:
                         cookies_fine.append(cookie)
+
+                    if c.samesite == "None":
+                        cookies_samesite_none.append(cookie)
+                    elif c.samesite == "lax" or c.samesite == "Lax":
+                        cookies_samesite_lax.append(cookie)
+                    elif c.samesite == None:
+                        cookies_missing_samesite.append(cookie)
             else:
                 c = LovetzCookie.parse_response(tmp)
                 if not c.httponly and not c.secure:
@@ -245,6 +259,13 @@ class CookiePlugin(LovetzPlugin):
                     cookies_secure.append(tmp)
                 else:
                     cookies_fine.append(tmp)
+
+                if c.samesite == "None":
+                    cookies_samesite_none.append(tmp)
+                elif c.samesite == "lax" or c.samesite == "Lax":
+                    cookies_samesite_lax.append(tmp)
+                elif c.samesite == None:
+                    cookies_missing_samesite.append(tmp)
         else:
             pass
 
@@ -268,6 +289,27 @@ class CookiePlugin(LovetzPlugin):
                      url,
                      msg.format(', '.join([cb
                                            for cb in cookies_both])))
+
+        if cookies_samesite_none:
+            msg = "Cookies with SameSite explicitly set to None: {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([cb
+                                           for cb in cookies_samesite_none])))
+
+        if cookies_samesite_lax:
+            msg = "Cookies with SameSite explicitly set to lax: {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([cb
+                                           for cb in cookies_samesite_lax])))
+
+        if cookies_missing_samesite:
+            msg = "Cookies missing SameSite: {0}"
+            self.log(LOG_WARN,
+                     url,
+                     msg.format(', '.join([cb
+                                           for cb in cookies_missing_samesite])))
 
         if cookies_fine:
             msg = "Cookies with the correct flags: {0}"
@@ -849,10 +891,28 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
 
     argp = argparse.ArgumentParser(description=desc)
 
-    argp.add_argument('-T', dest='filetype', type=str)
-    argp.add_argument('-F', dest='filename', type=str)
-    argp.add_argument('-o', dest='outputtype', type=str)
-    argp.add_argument('-O', dest='outputlocation', type=str)
+    argp.add_argument('-T',
+                      dest='filetype',
+                      help="the type of history file to load (burp|ie|har)",
+                      type=str)
+    argp.add_argument('-F',
+                      dest='filename',
+                      help="the name of the history file",
+                      type=str)
+    argp.add_argument('-o',
+                      dest='outputtype',
+                      help="the type of output (text|csv|json)",
+                      type=str)
+    argp.add_argument('-O',
+                      dest='outputlocation',
+                      help="the output file location, if any",
+                      type=str)
+    argp.add_argument('-J',
+                      dest='jsdumping',
+                      default=False,
+                      const=True,
+                      action="store_const",
+                      help="enable dumping JavaScript files from history")
 
     args = argp.parse_args()
 
@@ -873,8 +933,14 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
         sys.exit(2)
 
     reader.load(args.filename)
-    plugins = [CORSPlugin(), CookiePlugin(), HeaderPlugin(),
-               JSDumpingPlugin(), ETagPlugin()]
+    plugins = [CORSPlugin(),
+               CookiePlugin(),
+               HeaderPlugin(),
+               ETagPlugin()]
+
+    if args.jsdumping:
+        print "[!] adding JS File Dumping"
+        plugins.append(JSDumpingPlugin())
 
     for item in reader.iteritem():
         for plugin in plugins:
