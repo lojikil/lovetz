@@ -416,7 +416,8 @@ class HeaderPlugin(LovetzPlugin):
         security_headers = ["cache-control", "pragma", "x-xss-protection",
                             "x-content-type-options", "expires", "x-frame-options",
                             "strict-transport-security", "x-powered-by", "server",
-                            "www-authenticate"]
+                            "www-authenticate", "content-security-policy",
+                            "content-security-policy-report-only"]
 
         msg = "Response header {0} with value {1}"
         for header in response_headers.keys():
@@ -427,6 +428,24 @@ class HeaderPlugin(LovetzPlugin):
 
         if not hasattr(self, "server_re"):
             self.server_re = re.compile('[0-9]')
+
+        if "content-security-policy" in response_headers:
+            self.log(LOG_INFO,
+                     url,
+                     "CSP with policy: {0}".format(response_headers["content-security-policy"]))
+        else:
+            self.log(LOG_WARN,
+                     url,
+                     "No CSP defined")
+
+        if "content-security-policy-report-only" in response_headers:
+            self.log(LOG_INFO,
+                     url,
+                     "CSP-RO with policy: {0}".format(response_headers["content-security-policy-report-only"]))
+        else:
+            self.log(LOG_INFO,
+                     url,
+                     "No CSP-RO defined")
 
         if "www-authenticate" in response_headers:
             if "Basic realm" in response_headers["www-authenticate"]:
@@ -439,6 +458,11 @@ class HeaderPlugin(LovetzPlugin):
                          "(www-auth) URL Authentication: {0}".format(response_headers["www-authenticate"]))
 
         if "cache-control" in response_headers:
+            if "private" in response_headers["cache-control"]:
+                self.log(LOG_WARN,
+                         url,
+                         "Broken cache control: {0}".format(response_headers["cache-control"]))
+
             if "must-revalidate" not in response_headers["cache-control"]:
                 msg = "Weak 'cache-control' value: {0}"
                 self.log(LOG_WARN,
