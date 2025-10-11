@@ -4,8 +4,9 @@ import csv
 import re
 import argparse
 import sys
-import urlparse
+import urllib.parse
 import os.path
+import base64
 
 
 LOG_ERROR = 2
@@ -56,7 +57,7 @@ class HeaderDict(object):
         return value
 
     def keys(self):
-        return self._storage.keys()
+        return list(self._storage.keys())
 
 
 class LovetzPlugin(object):
@@ -89,10 +90,10 @@ class LovetzPlugin(object):
                                 request=request,
                                 response=response))
         if self.verbose:
-            print "{0} ({1}) {2} for {3}".format(outputs[event],
+            print("{0} ({1}) {2} for {3}".format(outputs[event],
                                                self.__class__.__name__,
                                                message,
-                                               url)
+                                               url))
 
 
 class CORSPlugin(LovetzPlugin):
@@ -222,7 +223,7 @@ class ETagPlugin(LovetzPlugin):
             val = response_headers["etag"]
             self.log(LOG_WARN,
                      url,
-                     "ETag in response: {0}".format(val))
+                     "ETag in response for {0}".format(val))
 
 
 class CookiePlugin(LovetzPlugin):
@@ -285,49 +286,49 @@ class CookiePlugin(LovetzPlugin):
             pass
 
         if cookies_httponly:
-            msg = "Cookies missing 'http only': {0}"
+            msg = "Cookies missing 'http only' for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([ct
                                            for ct in cookies_httponly])))
 
         if cookies_secure:
-            msg = "Cookies missing 'secure': {0}"
+            msg = "Cookies missing 'secure' for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([cs
                                            for cs in cookies_secure])))
 
         if cookies_both:
-            msg = "Cookies missing both 'secure' and 'http only': {0}"
+            msg = "Cookies missing both 'secure' and 'http only' for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([cb
                                            for cb in cookies_both])))
 
         if cookies_samesite_none:
-            msg = "Cookies with SameSite explicitly set to None: {0}"
+            msg = "Cookies with SameSite explicitly set to None for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([cb
                                            for cb in cookies_samesite_none])))
 
         if cookies_samesite_lax:
-            msg = "Cookies with SameSite explicitly set to lax: {0}"
+            msg = "Cookies with SameSite explicitly set to lax for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([cb
                                            for cb in cookies_samesite_lax])))
 
         if cookies_missing_samesite:
-            msg = "Cookies missing SameSite: {0}"
+            msg = "Cookies missing SameSite for {0}"
             self.log(LOG_WARN,
                      url,
                      msg.format(', '.join([cb
                                            for cb in cookies_missing_samesite])))
 
         if cookies_fine:
-            msg = "Cookies with the correct flags: {0}"
+            msg = "Cookies with the correct flags for {0}"
             self.log(LOG_INFO,
                      url,
                      msg.format(', '.join([cf
@@ -362,16 +363,16 @@ class FingerprintPlugin(LovetzPlugin):
                 'WordPress powered by': (re.compile('Powered By WordPress',
                                                     re.I), 'body'),
                 'phpMyAdmim': (re.compile('/phpMyAdmin', re.I), "both"),
-                'php': (re.compile('\.php', re.I), "url"),
-                'Struts 1': (re.compile('\.do', re.I), "url"),
-                'Struts 2': (re.compile('\.action', re.I), "url"),
-                'ASP': (re.compile('\.asp$', re.I), "url"),
-                'ASP.Net': (re.compile('\.aspx$', re.I), "url"),
-                'ASP.Net Header': (re.compile('ASP\.NET', re.I), "header"),
+                'php': (re.compile(r'\.php', re.I), "url"),
+                'Struts 1': (re.compile(r'\.do', re.I), "url"),
+                'Struts 2': (re.compile(r'\.action', re.I), "url"),
+                'ASP': (re.compile(r'\.asp$', re.I), "url"),
+                'ASP.Net': (re.compile(r'\.aspx$', re.I), "url"),
+                'ASP.Net Header': (re.compile(r'ASP\.NET', re.I), "header"),
                 'Outlook Web Access': (re.compile('/owa/', re.I), 'url'),
                 'Exchange': (re.compile('/exchweb', re.I), 'url'),
                 'CGI': (re.compile('/cgi-?(bin)?', re.I), 'url'),
-                'ColdFusion': (re.compile('\.(cfm|cfc)', re.I), 'url')
+                'ColdFusion': (re.compile(r'\.(cfm|cfc)', re.I), 'url')
             }
 
         for fpname, fptuple in self.fingerprints:
@@ -420,7 +421,7 @@ class HeaderPlugin(LovetzPlugin):
                             "content-security-policy-report-only"]
 
         msg = "Response header {0} with value {1}"
-        for header in response_headers.keys():
+        for header in list(response_headers.keys()):
             if header not in security_headers:
                 self.log(LOG_INFO,
                          url,
@@ -432,7 +433,7 @@ class HeaderPlugin(LovetzPlugin):
         if "content-security-policy" in response_headers:
             self.log(LOG_INFO,
                      url,
-                     "CSP with policy: {0}".format(response_headers["content-security-policy"]))
+                     "CSP with policy for {0}".format(response_headers["content-security-policy"]))
         else:
             self.log(LOG_WARN,
                      url,
@@ -441,7 +442,7 @@ class HeaderPlugin(LovetzPlugin):
         if "content-security-policy-report-only" in response_headers:
             self.log(LOG_INFO,
                      url,
-                     "CSP-RO with policy: {0}".format(response_headers["content-security-policy-report-only"]))
+                     "CSP-RO with policy for {0}".format(response_headers["content-security-policy-report-only"]))
         else:
             self.log(LOG_INFO,
                      url,
@@ -451,27 +452,27 @@ class HeaderPlugin(LovetzPlugin):
             if "Basic realm" in response_headers["www-authenticate"]:
                 self.log(LOG_WARN,
                          url,
-                         "(www-auth) URL supports Basic authentication: {0}".format(response_headers["www-authenticate"]))
+                         "(www-auth) URL supports Basic authentication for {0}".format(response_headers["www-authenticate"]))
             else:
                 self.log(LOG_INFO,
                          url,
-                         "(www-auth) URL Authentication: {0}".format(response_headers["www-authenticate"]))
+                         "(www-auth) URL Authentication for {0}".format(response_headers["www-authenticate"]))
 
         if "cache-control" in response_headers:
             if "private" in response_headers["cache-control"]:
                 self.log(LOG_WARN,
                          url,
-                         "Broken cache control: {0}".format(response_headers["cache-control"]))
+                         "Broken cache control for {0}".format(response_headers["cache-control"]))
 
             if "must-revalidate" not in response_headers["cache-control"]:
-                msg = "Weak 'cache-control' value: {0}"
+                msg = "Weak 'cache-control' value for {0}"
                 self.log(LOG_WARN,
                          url,
                          msg.format(response_headers["cache-control"]))
             else:
                 self.log(LOG_INFO,
                          url,
-                         "Cache-control header found: {0}".format(response_headers["cache-control"]))
+                         "Cache-control header found for {0}".format(response_headers["cache-control"]))
         else:
             self.log(LOG_WARN,
                      url,
@@ -594,7 +595,7 @@ class JSDumpingPlugin(LovetzPlugin):
               response_body, request_body, response_status, request_status):
         parsed_url = urlparse.urlsplit(url)
         if parsed_url.path.endswith(".js"):
-            fname = urlparse.urlsplit(url).path.split('/')[-1]
+            fname = urllib.parse.urlsplit(url).path.split('/')[-1]
 
             # XXX: this is pretty awful
             # I have to split the response status line here, to check
@@ -774,9 +775,12 @@ class BurpProxyReader(LovetzReader):
             self.filename = None
 
     def _headers(self, item):
-        tmp = item.split('\r\n\r\n')
-        body = tmp[1]
-        tmp = tmp[0].split('\r\n')
+        tmp = item.split(b'\r\n\r\n')
+        try:
+            body = str(tmp[1], encoding="utf8")
+        except:
+            body = tmp[1]
+        tmp = str(tmp[0], encoding="utf8").split('\r\n')
         status = tmp[0]
         tmp = tmp[1:]
 
@@ -795,17 +799,17 @@ class BurpProxyReader(LovetzReader):
 
         for item in self.tree.iterfind('./item'):
             url, response, request = "", "", ""
-            for c in item.getchildren():
+            for c in item:
                 if c.tag == "url":
                     url = c.text
                 elif c.tag == "response":
                     try:
-                        response = c.text.decode('base64')
+                        response = base64.b64decode(c.text)
                     except:
                         response = c.text
                 elif c.tag == "request":
                     try:
-                        request = c.text.decode('base64')
+                        request = base64.b64decode(c.text)
                     except:
                         request = c.text
 
@@ -935,7 +939,7 @@ def dump_logs(events, style=LOG_RAW, location=None):
                                             event.message,
                                             event.url)
             if location is None:
-                print line
+                print(line)
             else:
                 location.write(line + "\n")
     elif style is LOG_CSV:
@@ -945,16 +949,12 @@ def dump_logs(events, style=LOG_RAW, location=None):
     elif style is LOG_JSON:
         output = json.dumps({'events': events})
         if location is None:
-            print output
+            print(output)
         else:
             location.write(output)
 
 
 if __name__ == "__main__":
-
-    if sys.argv < 4:
-        print "usage: lovetz.py [options] <file>"
-        sys.exit(0)
 
     desc = """ Lovetz: a passive history scanner.
 Lovetz is meant to mimic tools such as ZAP and Burp, but in an off-line
@@ -999,11 +999,11 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
     elif args.filetype == "har":
         reader = HARReader()
     else:
-        print "filetype must be one of: burp, ie, har"
+        print("filetype must be one of: burp, ie, har")
         sys.exit(1)
 
     if args.filename == "":
-        print "filename must be specified"
+        print("filename must be specified")
         sys.exit(2)
 
     reader.load(args.filename)
@@ -1013,7 +1013,7 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
                ETagPlugin()]
 
     if args.jsdumping:
-        print "[!] adding JS File Dumping"
+        print("[!] adding JS File Dumping")
         plugins.append(JSDumpingPlugin())
 
     for item in reader.iteritem():
