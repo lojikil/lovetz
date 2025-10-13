@@ -593,7 +593,7 @@ class JSDumpingPlugin(LovetzPlugin):
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        parsed_url = urlparse.urlsplit(url)
+        parsed_url = urllib.parse.urlsplit(url)
         if parsed_url.path.endswith(".js"):
             fname = urllib.parse.urlsplit(url).path.split('/')[-1]
 
