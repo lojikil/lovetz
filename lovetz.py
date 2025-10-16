@@ -391,14 +391,22 @@ class FingerprintPlugin(LovetzPlugin):
                 pass
 
 
-class IDsInURLPlugin(LovetzPlugin):
+class SensitiveDataPlugin(LovetzPlugin):
     """ Attempt to uncover sensitive data such as session IDs in URLs.
     """
 
+    checks = dict("ssn": re.compile("\d\d\d\-\d\d\d-\d\d\d\d"),
+                  "username": re.compile(r"user(name)?", re.I),
+                  "password": re.compile(r"pass(word)?", re.I),
+                  "session id": re.compile(r"sess(ion)?_?id", re.I))
+
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        pass
-
+        for k, v in self.checks:
+            if v.search(url) is not None:
+                self.log(LOG_WARN,
+                         url,
+                         f"{k} matched for {url}")
 
 class AutocompletePlugin(LovetzPlugin):
     """ Autocomplete in HTML warning.
