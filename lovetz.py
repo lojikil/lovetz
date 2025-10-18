@@ -62,7 +62,7 @@ class HeaderDict(object):
 
 class LovetzPlugin(object):
 
-    def __init__(self, style=LOG_RAW, verbose=True):
+    def __init__(self, style=LOG_RAW, verbose=False):
         # no longer need to have the DOM checks here; moved them to the
         # reader, which I believe is a cleaner location.
         self.events = []
@@ -375,7 +375,7 @@ class FingerprintPlugin(LovetzPlugin):
                 'ColdFusion': (re.compile(r'\.(cfm|cfc)', re.I), 'url')
             }
 
-        for fpname, fptuple in self.fingerprints:
+        for fpname, fptuple in self.replugins.items():
 
             fingerprint, location = fptuple
 
@@ -395,14 +395,16 @@ class SensitiveDataPlugin(LovetzPlugin):
     """ Attempt to uncover sensitive data such as session IDs in URLs.
     """
 
-    checks = dict("ssn": re.compile("\d\d\d\-\d\d\d-\d\d\d\d"),
-                  "username": re.compile(r"user(name)?", re.I),
-                  "password": re.compile(r"pass(word)?", re.I),
-                  "session id": re.compile(r"sess(ion)?_?id", re.I))
+    checks = {"ssn": re.compile("\d\d\d\-\d\d\d-\d\d\d\d"),
+              "username": re.compile(r"user(name)?", re.I),
+              "password": re.compile(r"pass(word)?", re.I),
+              "session id": re.compile(r"sess(ion)?_?id", re.I)
+    }
+
 
     def check(self, url, response_headers, request_headers,
               response_body, request_body, response_status, request_status):
-        for k, v in self.checks:
+        for k, v in self.checks.items():
             if v.search(url) is not None:
                 self.log(LOG_WARN,
                          url,
@@ -711,7 +713,7 @@ class HARReader(LovetzReader):
         if filename is not None:
             self.filename = filename
             self.json_doc = None
-            with file(self.filename, 'r') as f:
+            with open(self.filename, 'r') as f:
                 self.json_doc = json.load(f)
         else:
             self.filename = None
@@ -934,32 +936,57 @@ class IEReader(LovetzReader):
                                     res[0], res[1], res[2])
 
 
-def dump_logs(events, style=LOG_RAW, location=None):
+def dump_logs(events, style=LOG_RAW, location=None, collate=False):
 
     fields = ["event", "url", "message", "request_headers",
               "response_headers", "request", "response"]
     outputs = ["[-]", "[!]", "[+]"]
 
-    if style is LOG_RAW:
+    if location == "-":
+        location = None
+        fh = sys.stdout
+    else:
+        fh = open(location, "w")
 
-        for event in events:
-            line = "{0} {1} for {2}".format(outputs[event.event],
-                                            event.message,
-                                            event.url)
+    try:
+        if style is LOG_RAW:
+            for event in events:
+                line = "{0} {1} for {2}".format(outputs[event["event"]],
+                                                event["message"],
+                                                event["url"])
+                if location is None:
+                    print(line)
+                else:
+                    fh.write(line + "\n")
+        elif style is LOG_CSV:
+            writer = csv.DictWriter(fh, fieldnames=fields)
+            for event in events:
+                writer.writerow(event)
+        elif style is LOG_JSON:
+            output = json.dumps({'events': events})
             if location is None:
-                print(line)
+                print(output)
             else:
-                location.write(line + "\n")
-    elif style is LOG_CSV:
-        writer = csv.DictWriter(location, fieldnames=fields)
-        for event in events:
-            writer.writerow(event)
-    elif style is LOG_JSON:
-        output = json.dumps({'events': events})
-        if location is None:
-            print(output)
-        else:
-            location.write(output)
+                fh.write(output)
+    finally:
+        if location is not None:
+            fh.close()
+
+def validate_type(s):
+    if s in ["burp", "har", "ie"]:
+        return s
+    else:
+        raise argparse.ArgumentTypeError("Invalid input type")
+
+def validate_output(s):
+    if s == "csv":
+        return LOG_CSV
+    elif s == "json":
+        return LOG_JSON
+    elif s == "text":
+        return LOG_RAW
+    else:
+        raise argparse.ArgumentTypeError("Invalid output type")
 
 
 if __name__ == "__main__":
@@ -973,28 +1000,40 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
 
     argp = argparse.ArgumentParser(description=desc)
 
-    argp.add_argument('-T',
+    argp.add_argument('-T', "--file-type",
                       dest='filetype',
                       help="the type of history file to load (burp|ie|har)",
-                      type=str)
-    argp.add_argument('-F',
+                      type=validate_type)
+    argp.add_argument('-F', "--file-name",
                       dest='filename',
                       help="the name of the history file",
                       type=str)
-    argp.add_argument('-o',
+    argp.add_argument('-o', "--output-type",
                       dest='outputtype',
                       help="the type of output (text|csv|json)",
-                      type=str)
-    argp.add_argument('-O',
+                      type=validate_output)
+    argp.add_argument('-O', "--output",
                       dest='outputlocation',
-                      help="the output file location, if any",
+                      help="the output file location, if any (\"-\" for stdout)",
                       type=str)
-    argp.add_argument('-J',
+    argp.add_argument('-J', "--dump-js",
                       dest='jsdumping',
                       default=False,
                       const=True,
                       action="store_const",
                       help="enable dumping JavaScript files from history")
+    argp.add_argument('-v', "--verbose",
+                      dest='verbose',
+                      default=False,
+                      const=True,
+                      action="store_const",
+                      help="configure immediate output verbosity")
+    argp.add_argument('-c', "--collate",
+                      dest='collate',
+                      default=False,
+                      const=True,
+                      action="store_const",
+                      help="enable output collation by type and source")
 
     args = argp.parse_args()
 
@@ -1015,10 +1054,12 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
         sys.exit(2)
 
     reader.load(args.filename)
-    plugins = [CORSPlugin(),
-               CookiePlugin(),
-               HeaderPlugin(),
-               ETagPlugin()]
+    plugins = [CORSPlugin(verbose=args.verbose),
+               CookiePlugin(verbose=args.verbose),
+               HeaderPlugin(verbose=args.verbose),
+               ETagPlugin(verbose=args.verbose),
+               SensitiveDataPlugin(verbose=args.verbose),
+               FingerprintPlugin(verbose=args.verbose)]
 
     if args.jsdumping:
         print("[!] adding JS File Dumping")
@@ -1027,3 +1068,15 @@ including Burp's history file format, and InternetExplorer's NetworkData."""
     for item in reader.iteritem():
         for plugin in plugins:
             plugin.check(**item)
+
+    if args.outputlocation is not None:
+        # we collect together all the events here
+        # so that we can actually collate them and
+        # what not
+        events = []
+        for plugin in plugins:
+            events.extend(plugin.events)
+        dump_logs(events,
+                  style=args.outputtype,
+                  location=args.outputlocation,
+                  collate=args.collate)
